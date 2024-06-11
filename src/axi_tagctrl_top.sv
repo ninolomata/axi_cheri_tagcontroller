@@ -53,13 +53,13 @@ module axi_tagctrl_top #(
     parameter int unsigned NumBlocks        = 32'd0,
     /// AXI4+ATOP ID field width of the slave port.
     /// The ID field width of the master port is this parameter + 1.
-    parameter int unsigned AxiIdWidth       = 32'd0,
+    parameter int unsigned AxiIdWidth       = 32'd6,
     /// AXI4+ATOP address field width of both the slave and master port.
-    parameter int unsigned AxiAddrWidth     = 32'd0,
+    parameter int unsigned AxiAddrWidth     = 32'd64,
     /// AXI4+ATOP data field width of both the slave and the master port.
-    parameter int unsigned AxiDataWidth     = 32'd0,
+    parameter int unsigned AxiDataWidth     = 32'd64,
     /// AXI4+ATOP user field width of both the slave and the master port.
-    parameter int unsigned AxiUserWidth     = 32'd0,
+    parameter int unsigned AxiUserWidth     = 32'd1,
     /// Internal register width
     parameter int unsigned RegWidth         = 64,
     /// Register type for HW -> Register direction
@@ -351,7 +351,7 @@ module axi_tagctrl_top #(
   logic                            bist_valid;
 
   // global flush signals
-  logic llc_isolate, llc_isolated, aw_unit_busy, ar_unit_busy, flush_recv;
+  logic tagctrl_isolate, tagctrl_isolated, aw_unit_busy, ar_unit_busy, flush_recv;
 
   // define address rules from the address ports, propagate it throughout the design
   rule_full_t cached_addr_rule;
@@ -385,8 +385,8 @@ module axi_tagctrl_top #(
       .desc_valid_o     (ax_desc_valid[axi_llc_pkg::ConfigUnit]),
       .desc_ready_i     (ax_desc_ready[axi_llc_pkg::ConfigUnit]),
       // flush control signals to prevent new data in ax_cutter loading
-      .llc_isolate_o    (llc_isolate),
-      .llc_isolated_i   (llc_isolated),
+      .tagctrl_isolate_o    (tagctrl_isolate),
+      .tagctrl_isolated_i   (tagctrl_isolated),
       .aw_unit_busy_i   (aw_unit_busy),
       .ar_unit_busy_i   (ar_unit_busy),
       .flush_desc_recv_i(flush_recv),
@@ -817,7 +817,8 @@ module axi_tagctrl_top #(
       .mst_req_o  (mst_req_o),
       .mst_resp_i (mst_resp_i)
   );
-
+    slv_req_t slv_req_cut;
+    slv_resp_t slv_resp_cut;
   // Isolation module before demux to easy flushing,
   // AXI requests get stalled while flush is active
   axi_isolate #(
@@ -831,13 +832,31 @@ module axi_tagctrl_top #(
   ) i_axi_isolate_flush (
     .clk_i,
     .rst_ni,
-    .slv_req_i,  // Slave port request
-    .slv_resp_o, // Slave port response
+    .slv_req_i (slv_req_cut),  // Slave port request
+    .slv_resp_o (slv_resp_cut), // Slave port response
     .mst_req_o  ( to_tagctrl_req  ),
     .mst_resp_i ( from_tagctrl_resp  ),
-    .isolate_i  ( llc_isolate   ),
-    .isolated_o ( llc_isolated  )
+    .isolate_i  ( tagctrl_isolate   ),
+    .isolated_o ( tagctrl_isolated  )
   );
+
+  axi_cut #(
+  // AXI channel structs
+  .aw_chan_t  (slv_aw_chan_t),
+  .w_chan_t   (w_chan_t),
+  .b_chan_t   (slv_b_chan_t),
+  .ar_chan_t  (slv_ar_chan_t),
+  .r_chan_t   (slv_r_chan_t),
+  .req_t  (slv_req_t),
+  .resp_t (slv_resp_t)
+) i_axi_cut(
+    .clk_i,
+    .rst_ni,
+    .slv_req_i(slv_req_i),
+    .slv_resp_o(slv_resp_o),
+    .mst_req_o(slv_req_cut),
+    .mst_resp_i(slv_resp_cut)
+);
 
   // pragma translate_off
 `ifndef VERILATOR

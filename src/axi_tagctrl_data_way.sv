@@ -118,7 +118,7 @@ module axi_tagctrl_data_way #(
     end else begin
       // we are able to handle a request to the sram
       inp_ready_o = wr_en_q ? 1'b0 : 1'b1;
-      if (inp_valid_i) begin
+      if (inp_valid_i && !wr_en_q) begin
         // load the registers and request to the sram
         cache_unit_d = inp_i.cache_unit;
         load_unit    = 1'b1;

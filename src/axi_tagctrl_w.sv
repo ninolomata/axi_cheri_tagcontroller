@@ -73,6 +73,7 @@ module axi_tagctrl_w #(
 );
   typedef logic [Cfg.AxiIdWidth:0]  axi_id_mst_t;
   typedef logic [Cfg.AxiDataWidth-1:0]  axi_data_t;
+  typedef logic [Cfg.AxiAddrWidth-1:0]  axi_addr_t;
   // Registers
   tagctrl_desc_t tagctrl_desc_d, tagctrl_desc_q;
   logic load_desc;
@@ -105,6 +106,13 @@ module axi_tagctrl_w #(
   logic          tag_fifo_pop;      // pop data from FIFO if it gets transferred
   tagc_oup_t    tag_fifo_data;     // gets assigned to the w channel
   tagc_oup_t    tag_fifo_indata;
+  // tag cache FIFO control signals
+  logic         w_mst_fifo_full;     // the FIFO is full
+  logic         w_mst_fifo_empty;     // the FIFO is full
+  logic         w_mst_fifo_push;     // push data into the FIFO
+  logic         w_mst_fifo_pop;      // pop data from FIFO if it gets transferred
+  tagc_oup_t    w_mst_fifo_data;     // gets assigned to the w channel
+  tagc_oup_t    w_mst_fifo_indata;
 
   // Decode tag bit index based on the address
   assign tag_bit_ind = tagctrl_desc_q.a_x_addr[$clog2(Cfg.CapSize/8)+:$clog2(Cfg.AxiDataWidth)];
@@ -114,7 +122,15 @@ module axi_tagctrl_w #(
   assign tagc_oup_o = tag_fifo_data;
   assign tag_fifo_pop = tagc_oup_valid_o && tagc_oup_ready_i;
 
+  // FIFO w beats memory assignments
+  assign w_mst_fifo_pop = w_chan_mst_ready_i && w_chan_mst_valid_o;
+  assign w_mst_fifo_indata = w_chan_slv_i;
+  assign w_chan_mst_o = w_mst_fifo_data;
+  assign w_chan_mst_valid_o = ~w_mst_fifo_empty;
+
   always_comb begin : w_chan_ctrl
+    automatic axi_addr_t addr;
+    addr = '0;
     // registers default values
     tagctrl_desc_d = tagctrl_desc_q;
     load_desc = 1'b0;
@@ -125,11 +141,10 @@ module axi_tagctrl_w #(
     state_d = state_q;
     tag_fifo_indata = '0;
     tag_fifo_push = 1'b0;
+    w_mst_fifo_push = 1'b0;
     // logic for handshake signals
     tagctrl_desc_ready_o = 1'b0;
     w_chan_slv_ready_o = 1'b0;
-    w_chan_mst_valid_o = 1'b0;
-    w_chan_mst_o = '0;
 
     // logic for b channel
     b_chan_mst_ready_o = 1'b0;
@@ -159,18 +174,16 @@ module axi_tagctrl_w #(
       end
       SEND_W_CHANNEL: begin
         // handshake ready to receive beats from the slave interface
-        w_chan_slv_ready_o = w_chan_mst_ready_i ? 1'b1 : 1'b0;
-        w_chan_mst_valid_o = w_chan_slv_valid_i ? 1'b1 : 1'b0;
+        w_chan_slv_ready_o = ~w_mst_fifo_full;
         // start sending beats if the master interface is ready
         // and there are valid beats on the slave interface
-        if (w_chan_mst_ready_i) begin
+        if (w_chan_slv_valid_i) begin
+          w_mst_fifo_push = 1'b1;
           // update the address
-          tagctrl_desc_d.a_x_addr = axi_pkg::aligned_addr(tagctrl_desc_q.a_x_addr +
+          addr = axi_pkg::aligned_addr(tagctrl_desc_q.a_x_addr +
                               axi_pkg::num_bytes(tagctrl_desc_q.a_x_size), tagctrl_desc_q.a_x_size);
+          tagctrl_desc_d.a_x_addr = addr;
           load_desc = 1'b1;
-          // set id field
-          w_chan_mst_o = w_chan_slv_i;
-          w_chan_mst_o.last = w_chan_slv_i.last ? 1'b1 : 1'b0;
           // store tag bit
           tagc_w_data_d = tagc_w_data_q | (w_chan_slv_i.user << tag_bit_ind);
           store_tagc_data = 1'b1;
@@ -178,11 +191,12 @@ module axi_tagctrl_w #(
           store_tagc_bit_en = 1'b1;
           // send a tag store package if this is the last beat or
           // the tag bits surpassed the data witdth (I might remove this in a future to improve performance)
-          if ((tag_bit_ind == (Cfg.AxiDataWidth - 1) && tagctrl_desc_d.a_x_addr[0+:$clog2(Cfg.CapSize/8)] == 0) || w_chan_slv_i.last) begin
+          if ((tag_bit_ind == (Cfg.AxiDataWidth - 1) && addr[0+:$clog2(Cfg.CapSize/8)] == 0) || w_chan_slv_i.last) begin
             if (tag_fifo_full) begin
               // in case the tag write fifo to the tag cache is full we need to wait
               load_desc = 1'b0;
-              w_chan_mst_valid_o = 1'b0;
+              tag_fifo_push = 1'b0;
+              w_mst_fifo_push = 1'b0;
               w_chan_slv_ready_o = 1'b0;
             end else begin
               tag_fifo_push = 1'b1;
@@ -195,7 +209,16 @@ module axi_tagctrl_w #(
               store_tagc_data = 1'b1;
             end
           end
-          if (w_chan_slv_i.last && !tag_fifo_full) begin
+          if (w_mst_fifo_full) begin
+            // in case the tag write fifo to the tag cache is full we need to wait
+            load_desc = 1'b0;
+            tag_fifo_push = 1'b0;
+            w_mst_fifo_push = 1'b0;
+            //w_chan_mst_valid_o = 1'b0;
+            w_chan_slv_ready_o = 1'b0;
+          end
+          end
+          if (w_chan_mst_o.last && w_mst_fifo_pop) begin
             state_d = WAIT_B_CHAN_RESP;
             b_chan_mst_ready_o = 1'b1;
             tagc_resp_ready_o = 1'b1;
@@ -222,7 +245,6 @@ module axi_tagctrl_w #(
             end
           end
         end
-      end
       WAIT_B_CHAN_RESP: begin
         b_chan_mst_ready_o  = !mem_b_chan_valid_q;
         tagc_resp_ready_o = !tagc_b_chan_valid_q;
@@ -266,12 +288,35 @@ module axi_tagctrl_w #(
     end
   endfunction : load_new_desc
 
+
+  // FIFO holds W beats to send to memory
+  fifo_v3 #(
+    .FALL_THROUGH ( 1'b1                  ),  // FIFO is in fall-through mode
+    .DEPTH        ( Cfg.TagWFifoDepth     ),  // can store up to 2 transactions
+    .dtype        ( w_chan_t              )
+  ) i_w_mem_data_fifo (
+    .clk_i        ( clk_i                 ),  // Clock
+    .rst_ni       ( rst_ni                ),  // Asynchronous reset active low
+    .flush_i      ( '0                    ),  // flush the queue
+    .testmode_i   ( test_i                ),  // test_mode to bypass clock gating
+    // status flags
+    .full_o       ( w_mst_fifo_full         ),  // queue is full
+    .empty_o      ( w_mst_fifo_empty        ),  // queue is empty
+    .usage_o      ( /* not used */        ),  // fill pointer
+    // as long as the queue is not full we can push new data
+    .data_i       ( w_mst_fifo_indata       ),  // data to push into the queue
+    .push_i       ( w_mst_fifo_push         ),  // data is valid and can be pushed to the queue
+    // as long as the queue is not empty we can pop new elements
+    .data_o       ( w_mst_fifo_data         ),  // output data
+    .pop_i        ( w_mst_fifo_pop          )   // pop head from queue
+  );
+
   // FIFO holds W beats to send to the tag cache
   fifo_v3 #(
     .FALL_THROUGH ( 1'b1                  ),  // FIFO is in fall-through mode
     .DEPTH        ( Cfg.TagWFifoDepth     ),  // can store up to 2 transactions
     .dtype        ( tagc_oup_t      )
-  ) i_r_data_fifo (
+  ) i_w_tags_data_fifo (
     .clk_i        ( clk_i                 ),  // Clock
     .rst_ni       ( rst_ni                ),  // Asynchronous reset active low
     .flush_i      ( '0                    ),  // flush the queue

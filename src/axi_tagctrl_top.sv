@@ -823,12 +823,8 @@ module axi_tagctrl_top #(
   // AXI requests get stalled while flush is active
   axi_isolate #(
       .NumPending  (axi_llc_pkg::MaxTrans),
-      .AxiAddrWidth(AxiAddrWidth),
-      .AxiDataWidth(AxiDataWidth),
-      .AxiIdWidth  (AxiIdWidth),
-      .AxiUserWidth(AxiUserWidth),
-      .axi_req_t   (slv_req_t),
-      .axi_resp_t  (slv_resp_t)
+      .req_t   (slv_req_t),
+      .resp_t  (slv_resp_t)
   ) i_axi_isolate_flush (
       .clk_i,
       .rst_ni,

@@ -223,11 +223,11 @@ module axi_tagctrl_config #(
     ///
     /// Flush control sets this signal to prevent active cache accesses during flushing.
     /// This is to preserve data integrity when a cache flush is underway.
-    output logic llc_isolate_o,
+    output logic tagctrl_isolate_o,
     /// The AXI salve port is isolated.
     ///
     /// This signals the flush FSM that it can safely perform the flush.
-    input logic llc_isolated_i,
+    input logic tagctrl_isolated_i,
     /// The AW descriptor generation unit is busy.
     ///
     /// This signal is needed for the flush control so that no active functional descriptors
@@ -351,7 +351,7 @@ module axi_tagctrl_config #(
     // Flush state machine
     flush_state_d             = flush_state_q;
     // Slave port is isolated during flush.
-    llc_isolate_o             = 1'b1;
+    tagctrl_isolate_o             = 1'b1;
     // To flush register, holds the ways which have to be flushed.
     to_flush_d                = to_flush_q;
     // Emit flush descriptors.
@@ -369,7 +369,7 @@ module axi_tagctrl_config #(
         // and do not isolate main AXI
         conf_regs_o.cfg_spm_en   = 1'b0;
         conf_regs_o.cfg_flush_en = 1'b0;
-        llc_isolate_o            = 1'b0;
+        tagctrl_isolate_o            = 1'b0;
         // Change state, if there is a flush request, i.e. CommitCfg was set
         if (conf_regs_i.commit_cfg) begin
           conf_regs_o.commit_cfg    = 1'b0;  // Clear the commit configuration flag
@@ -379,7 +379,7 @@ module axi_tagctrl_config #(
       end
       FsmWaitAx: begin
         // wait until main AXI is free
-        if (llc_isolated_i) begin
+        if (tagctrl_isolated_i) begin
           flush_state_d = FsmWaitSplitter;
         end
       end

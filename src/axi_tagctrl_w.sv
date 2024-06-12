@@ -10,70 +10,70 @@
 /// [TODO] Description here
 
 module axi_tagctrl_w #(
-  /// Tag Controller parameters configuration struct. This is passed down from
-  /// [`axi_tag_ctrl_top`](module.axi_tag_ctrl_top
-  parameter axi_tagctrl_pkg::tagctrl_cfg_t Cfg = axi_tagctrl_pkg::tagctrl_cfg_t'{default: '0},
-  /// Tag Controller descriptor type definition.
-  parameter type tagctrl_desc_t = logic,
-  /// Tag Cache write payload definition.
-  parameter type tagc_oup_t = logic,
-  /// AXI slave port W channel struct definition.
-  parameter type w_chan_t = logic,
-  /// AXI slave port B channel struct definition.
-  parameter type b_chan_t = logic
+    /// Tag Controller parameters configuration struct. This is passed down from
+    /// [`axi_tag_ctrl_top`](module.axi_tag_ctrl_top
+    parameter axi_tagctrl_pkg::tagctrl_cfg_t Cfg = axi_tagctrl_pkg::tagctrl_cfg_t'{default: '0},
+    /// Tag Controller descriptor type definition.
+    parameter type tagctrl_desc_t = logic,
+    /// Tag Cache write payload definition.
+    parameter type tagc_oup_t = logic,
+    /// AXI slave port W channel struct definition.
+    parameter type w_chan_t = logic,
+    /// AXI slave port B channel struct definition.
+    parameter type b_chan_t = logic
 ) (
-  /// Clock, positive edge triggered.
-  input logic clk_i,
-  /// Asynchronous reset, active low.
-  input logic rst_ni,
-  /// Testmode enable, active high.
-  input logic test_i,
-  /// Input descriptor payload.
-  input tagctrl_desc_t tagctrl_desc_i,
-  /// Input descriptor is valid.
-  input logic tagctrl_desc_valid_i,
-  /// Unit is ready to accept a new descriptor.
-  output logic tagctrl_desc_ready_o,
-  /// AXI slave port W channel payload input.
-  input w_chan_t w_chan_slv_i,
-  /// AXI slave port W beat is valid.
-  input logic w_chan_slv_valid_i,
-  /// AXI slave port W beat is ready.
-  output logic w_chan_slv_ready_o,
-  /// AXI slave port B channel payload output.
-  output b_chan_t b_chan_slv_o,
-  /// AXI B beat is valid.
-  output logic b_chan_slv_valid_o,
-  /// AXI B Beat is ready.
-  input logic b_chan_slv_ready_i,
-  /// Tag Cache write payload.
-  output tagc_oup_t tagc_oup_o,
-  /// Tag Cache write payload is valid.
-  output logic tagc_oup_valid_o,
-  /// Tag Cache is ready.
-  input logic tagc_oup_ready_i,
-  /// Tag Cache write response payload.
-  input b_chan_t tagc_resp_i,
-  /// Tag Cache write payload is valid.
-  input logic tagc_resp_valid_i,
-  /// Tag Cache is ready.
-  output logic tagc_resp_ready_o,
-  /// AXI W master channel payload.
-  output w_chan_t w_chan_mst_o,
-  /// AXI W master channel is valid.
-  output logic w_chan_mst_valid_o,
-  /// AXI W master channel is ready.
-  input logic w_chan_mst_ready_i,
-  /// AXI B master channel payload.
-  input b_chan_t b_chan_mst_i,
-  /// AXI B master channel is valid.
-  input logic b_chan_mst_valid_i,
-  /// AXI B master channel is ready.
-  output logic b_chan_mst_ready_o
+    /// Clock, positive edge triggered.
+    input logic clk_i,
+    /// Asynchronous reset, active low.
+    input logic rst_ni,
+    /// Testmode enable, active high.
+    input logic test_i,
+    /// Input descriptor payload.
+    input tagctrl_desc_t tagctrl_desc_i,
+    /// Input descriptor is valid.
+    input logic tagctrl_desc_valid_i,
+    /// Unit is ready to accept a new descriptor.
+    output logic tagctrl_desc_ready_o,
+    /// AXI slave port W channel payload input.
+    input w_chan_t w_chan_slv_i,
+    /// AXI slave port W beat is valid.
+    input logic w_chan_slv_valid_i,
+    /// AXI slave port W beat is ready.
+    output logic w_chan_slv_ready_o,
+    /// AXI slave port B channel payload output.
+    output b_chan_t b_chan_slv_o,
+    /// AXI B beat is valid.
+    output logic b_chan_slv_valid_o,
+    /// AXI B Beat is ready.
+    input logic b_chan_slv_ready_i,
+    /// Tag Cache write payload.
+    output tagc_oup_t tagc_oup_o,
+    /// Tag Cache write payload is valid.
+    output logic tagc_oup_valid_o,
+    /// Tag Cache is ready.
+    input logic tagc_oup_ready_i,
+    /// Tag Cache write response payload.
+    input b_chan_t tagc_resp_i,
+    /// Tag Cache write payload is valid.
+    input logic tagc_resp_valid_i,
+    /// Tag Cache is ready.
+    output logic tagc_resp_ready_o,
+    /// AXI W master channel payload.
+    output w_chan_t w_chan_mst_o,
+    /// AXI W master channel is valid.
+    output logic w_chan_mst_valid_o,
+    /// AXI W master channel is ready.
+    input logic w_chan_mst_ready_i,
+    /// AXI B master channel payload.
+    input b_chan_t b_chan_mst_i,
+    /// AXI B master channel is valid.
+    input logic b_chan_mst_valid_i,
+    /// AXI B master channel is ready.
+    output logic b_chan_mst_ready_o
 );
-  typedef logic [Cfg.AxiIdWidth:0]  axi_id_mst_t;
-  typedef logic [Cfg.AxiDataWidth-1:0]  axi_data_t;
-  typedef logic [Cfg.AxiAddrWidth-1:0]  axi_addr_t;
+  typedef logic [Cfg.AxiIdWidth:0] axi_id_mst_t;
+  typedef logic [Cfg.AxiDataWidth-1:0] axi_data_t;
+  typedef logic [Cfg.AxiAddrWidth-1:0] axi_addr_t;
   // Registers
   tagctrl_desc_t tagctrl_desc_d, tagctrl_desc_q;
   logic load_desc;
@@ -81,7 +81,8 @@ module axi_tagctrl_w #(
     IDLE,
     SEND_W_CHANNEL,
     WAIT_B_CHAN_RESP
-  } state_d, state_q;
+  }
+      state_d, state_q;
   // tag cache payload signals
   axi_data_t tagc_w_data_d, tagc_w_data_q;
   logic store_tagc_data;
@@ -100,19 +101,19 @@ module axi_tagctrl_w #(
   // Tag index bit (indicates if we are reading from a valid capability or not)
   logic [$clog2(Cfg.AxiDataWidth)-1:0] tag_bit_ind;
   // tag cache FIFO control signals
-  logic          tag_fifo_full;     // the FIFO is full
-  logic          tag_fifo_empty;     // the FIFO is full
-  logic          tag_fifo_push;     // push data into the FIFO
-  logic          tag_fifo_pop;      // pop data from FIFO if it gets transferred
-  tagc_oup_t    tag_fifo_data;     // gets assigned to the w channel
-  tagc_oup_t    tag_fifo_indata;
+  logic tag_fifo_full;  // the FIFO is full
+  logic tag_fifo_empty;  // the FIFO is full
+  logic tag_fifo_push;  // push data into the FIFO
+  logic tag_fifo_pop;  // pop data from FIFO if it gets transferred
+  tagc_oup_t tag_fifo_data;  // gets assigned to the w channel
+  tagc_oup_t tag_fifo_indata;
   // tag cache FIFO control signals
-  logic         w_mst_fifo_full;     // the FIFO is full
-  logic         w_mst_fifo_empty;     // the FIFO is full
-  logic         w_mst_fifo_push;     // push data into the FIFO
-  logic         w_mst_fifo_pop;      // pop data from FIFO if it gets transferred
-  tagc_oup_t    w_mst_fifo_data;     // gets assigned to the w channel
-  tagc_oup_t    w_mst_fifo_indata;
+  logic w_mst_fifo_full;  // the FIFO is full
+  logic w_mst_fifo_empty;  // the FIFO is full
+  logic w_mst_fifo_push;  // push data into the FIFO
+  logic w_mst_fifo_pop;  // pop data from FIFO if it gets transferred
+  tagc_oup_t w_mst_fifo_data;  // gets assigned to the w channel
+  tagc_oup_t w_mst_fifo_indata;
 
   // Decode tag bit index based on the address
   assign tag_bit_ind = tagctrl_desc_q.a_x_addr[$clog2(Cfg.CapSize/8)+:$clog2(Cfg.AxiDataWidth)];
@@ -180,8 +181,12 @@ module axi_tagctrl_w #(
         if (w_chan_slv_valid_i) begin
           w_mst_fifo_push = 1'b1;
           // update the address
-          addr = axi_pkg::aligned_addr(tagctrl_desc_q.a_x_addr +
-                              axi_pkg::num_bytes(tagctrl_desc_q.a_x_size), tagctrl_desc_q.a_x_size);
+          addr = axi_pkg::aligned_addr(
+            tagctrl_desc_q.a_x_addr + axi_pkg::num_bytes(
+              tagctrl_desc_q.a_x_size
+            ),
+            tagctrl_desc_q.a_x_size
+          );
           tagctrl_desc_d.a_x_addr = addr;
           load_desc = 1'b1;
           // store tag bit
@@ -191,7 +196,9 @@ module axi_tagctrl_w #(
           store_tagc_bit_en = 1'b1;
           // send a tag store package if this is the last beat or
           // the tag bits surpassed the data witdth (I might remove this in a future to improve performance)
-          if ((tag_bit_ind == (Cfg.AxiDataWidth - 1) && addr[0+:$clog2(Cfg.CapSize/8)] == 0) || w_chan_slv_i.last) begin
+          if ((tag_bit_ind == (Cfg.AxiDataWidth - 1) && addr[0+:$clog2(
+                  Cfg.CapSize/8
+              )] == 0) || w_chan_slv_i.last) begin
             if (tag_fifo_full) begin
               // in case the tag write fifo to the tag cache is full we need to wait
               load_desc = 1'b0;
@@ -217,37 +224,36 @@ module axi_tagctrl_w #(
             //w_chan_mst_valid_o = 1'b0;
             w_chan_slv_ready_o = 1'b0;
           end
-          end
-          if (w_chan_mst_o.last && w_mst_fifo_pop) begin
-            state_d = WAIT_B_CHAN_RESP;
-            b_chan_mst_ready_o = 1'b1;
-            tagc_resp_ready_o = 1'b1;
-            if (b_chan_slv_ready_i && b_chan_mst_valid_i && tagc_resp_valid_i) begin
-              state_d = IDLE;
-              b_chan_slv_o = b_chan_mst_i;
-              b_chan_slv_o.id = tagctrl_desc_q.a_x_id;
-              if (tagc_resp_i.resp != axi_pkg::RESP_OKAY)
-                b_chan_slv_o.resp = tagc_resp_i.resp;
-              b_chan_slv_valid_o = 1'b1;
-            end else begin
-              if (b_chan_mst_valid_i) begin
-                mem_b_chan_d = b_chan_mst_i;
-                en_mem_b_chan = 1'b1;
-                mem_b_chan_valid_d = 1'b1;
-                en_mem_b_chan_valid = 1'b1;
-              end
-              if (tagc_resp_valid_i) begin
-                tagc_b_chan_d = tagc_resp_i;
-                en_tagc_b_chan = 1'b1;
-                tagc_b_chan_valid_d = 1'b1;
-                en_tagc_b_chan_valid = 1'b1;
-              end
+        end
+        if (w_chan_mst_o.last && w_mst_fifo_pop) begin
+          state_d = WAIT_B_CHAN_RESP;
+          b_chan_mst_ready_o = 1'b1;
+          tagc_resp_ready_o = 1'b1;
+          if (b_chan_slv_ready_i && b_chan_mst_valid_i && tagc_resp_valid_i) begin
+            state_d = IDLE;
+            b_chan_slv_o = b_chan_mst_i;
+            b_chan_slv_o.id = tagctrl_desc_q.a_x_id;
+            if (tagc_resp_i.resp != axi_pkg::RESP_OKAY) b_chan_slv_o.resp = tagc_resp_i.resp;
+            b_chan_slv_valid_o = 1'b1;
+          end else begin
+            if (b_chan_mst_valid_i) begin
+              mem_b_chan_d = b_chan_mst_i;
+              en_mem_b_chan = 1'b1;
+              mem_b_chan_valid_d = 1'b1;
+              en_mem_b_chan_valid = 1'b1;
+            end
+            if (tagc_resp_valid_i) begin
+              tagc_b_chan_d = tagc_resp_i;
+              en_tagc_b_chan = 1'b1;
+              tagc_b_chan_valid_d = 1'b1;
+              en_tagc_b_chan_valid = 1'b1;
             end
           end
         end
+      end
       WAIT_B_CHAN_RESP: begin
-        b_chan_mst_ready_o  = !mem_b_chan_valid_q;
-        tagc_resp_ready_o = !tagc_b_chan_valid_q;
+        b_chan_mst_ready_o = !mem_b_chan_valid_q;
+        tagc_resp_ready_o  = !tagc_b_chan_valid_q;
         if (b_chan_mst_valid_i && !mem_b_chan_valid_q) begin
           mem_b_chan_d = b_chan_mst_i;
           en_mem_b_chan = 1'b1;
@@ -264,8 +270,7 @@ module axi_tagctrl_w #(
           state_d = IDLE;
           b_chan_slv_o = mem_b_chan_d;
           b_chan_slv_o.id = tagctrl_desc_q.a_x_id;
-          if (tagc_b_chan_d.resp != axi_pkg::RESP_OKAY)
-            b_chan_slv_o.resp = tagc_b_chan_d.resp;
+          if (tagc_b_chan_d.resp != axi_pkg::RESP_OKAY) b_chan_slv_o.resp = tagc_b_chan_d.resp;
           b_chan_slv_valid_o = 1'b1;
         end
       end
@@ -291,46 +296,46 @@ module axi_tagctrl_w #(
 
   // FIFO holds W beats to send to memory
   fifo_v3 #(
-    .FALL_THROUGH ( 1'b1                  ),  // FIFO is in fall-through mode
-    .DEPTH        ( Cfg.TagWFifoDepth     ),  // can store up to 2 transactions
-    .dtype        ( w_chan_t              )
+      .FALL_THROUGH(1'b1),               // FIFO is in fall-through mode
+      .DEPTH       (Cfg.TagWFifoDepth),  // can store up to 2 transactions
+      .dtype       (w_chan_t)
   ) i_w_mem_data_fifo (
-    .clk_i        ( clk_i                 ),  // Clock
-    .rst_ni       ( rst_ni                ),  // Asynchronous reset active low
-    .flush_i      ( '0                    ),  // flush the queue
-    .testmode_i   ( test_i                ),  // test_mode to bypass clock gating
-    // status flags
-    .full_o       ( w_mst_fifo_full         ),  // queue is full
-    .empty_o      ( w_mst_fifo_empty        ),  // queue is empty
-    .usage_o      ( /* not used */        ),  // fill pointer
-    // as long as the queue is not full we can push new data
-    .data_i       ( w_mst_fifo_indata       ),  // data to push into the queue
-    .push_i       ( w_mst_fifo_push         ),  // data is valid and can be pushed to the queue
-    // as long as the queue is not empty we can pop new elements
-    .data_o       ( w_mst_fifo_data         ),  // output data
-    .pop_i        ( w_mst_fifo_pop          )   // pop head from queue
+      .clk_i     (clk_i),              // Clock
+      .rst_ni    (rst_ni),             // Asynchronous reset active low
+      .flush_i   ('0),                 // flush the queue
+      .testmode_i(test_i),             // test_mode to bypass clock gating
+      // status flags
+      .full_o    (w_mst_fifo_full),    // queue is full
+      .empty_o   (w_mst_fifo_empty),   // queue is empty
+      .usage_o   (  /* not used */),   // fill pointer
+      // as long as the queue is not full we can push new data
+      .data_i    (w_mst_fifo_indata),  // data to push into the queue
+      .push_i    (w_mst_fifo_push),    // data is valid and can be pushed to the queue
+      // as long as the queue is not empty we can pop new elements
+      .data_o    (w_mst_fifo_data),    // output data
+      .pop_i     (w_mst_fifo_pop)      // pop head from queue
   );
 
   // FIFO holds W beats to send to the tag cache
   fifo_v3 #(
-    .FALL_THROUGH ( 1'b1                  ),  // FIFO is in fall-through mode
-    .DEPTH        ( Cfg.TagWFifoDepth     ),  // can store up to 2 transactions
-    .dtype        ( tagc_oup_t      )
+      .FALL_THROUGH(1'b1),               // FIFO is in fall-through mode
+      .DEPTH       (Cfg.TagWFifoDepth),  // can store up to 2 transactions
+      .dtype       (tagc_oup_t)
   ) i_w_tags_data_fifo (
-    .clk_i        ( clk_i                 ),  // Clock
-    .rst_ni       ( rst_ni                ),  // Asynchronous reset active low
-    .flush_i      ( '0                    ),  // flush the queue
-    .testmode_i   ( test_i                ),  // test_mode to bypass clock gating
-    // status flags
-    .full_o       ( tag_fifo_full         ),  // queue is full
-    .empty_o      ( tag_fifo_empty        ),  // queue is empty
-    .usage_o      ( /* not used */        ),  // fill pointer
-    // as long as the queue is not full we can push new data
-    .data_i       ( tag_fifo_indata       ),  // data to push into the queue
-    .push_i       ( tag_fifo_push         ),  // data is valid and can be pushed to the queue
-    // as long as the queue is not empty we can pop new elements
-    .data_o       ( tag_fifo_data         ),  // output data
-    .pop_i        ( tag_fifo_pop          )   // pop head from queue
+      .clk_i     (clk_i),             // Clock
+      .rst_ni    (rst_ni),            // Asynchronous reset active low
+      .flush_i   ('0),                // flush the queue
+      .testmode_i(test_i),            // test_mode to bypass clock gating
+      // status flags
+      .full_o    (tag_fifo_full),     // queue is full
+      .empty_o   (tag_fifo_empty),    // queue is empty
+      .usage_o   (  /* not used */),  // fill pointer
+      // as long as the queue is not full we can push new data
+      .data_i    (tag_fifo_indata),   // data to push into the queue
+      .push_i    (tag_fifo_push),     // data is valid and can be pushed to the queue
+      // as long as the queue is not empty we can pop new elements
+      .data_o    (tag_fifo_data),     // output data
+      .pop_i     (tag_fifo_pop)       // pop head from queue
   );
 
   // Registers Flip Flops

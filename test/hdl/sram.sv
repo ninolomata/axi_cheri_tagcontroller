@@ -25,83 +25,83 @@ module sram #(
     parameter NUM_WORDS  = 1024,
     parameter SIM_INIT   = "none",
     parameter OUT_REGS   = 0     // enables output registers in FPGA macro (read lat = 2)
-)(
-   input  logic                          clk_i,
-   input  logic                          rst_ni,
-   input  logic                          req_i,
-   input  logic                          we_i,
-   input  logic [$clog2(NUM_WORDS)-1:0]  addr_i,
-   input  logic [USER_WIDTH-1:0]         wuser_i,
-   input  logic [DATA_WIDTH-1:0]         wdata_i,
-   input  logic [(DATA_WIDTH+7)/8-1:0]   be_i,
-   output logic [USER_WIDTH-1:0]         ruser_o,
-   output logic [DATA_WIDTH-1:0]         rdata_o
+) (
+    input  logic                         clk_i,
+    input  logic                         rst_ni,
+    input  logic                         req_i,
+    input  logic                         we_i,
+    input  logic [$clog2(NUM_WORDS)-1:0] addr_i,
+    input  logic [       USER_WIDTH-1:0] wuser_i,
+    input  logic [       DATA_WIDTH-1:0] wdata_i,
+    input  logic [ (DATA_WIDTH+7)/8-1:0] be_i,
+    output logic [       USER_WIDTH-1:0] ruser_o,
+    output logic [       DATA_WIDTH-1:0] rdata_o
 );
 
-localparam DATA_WIDTH_ALIGNED = ((DATA_WIDTH+63)/64)*64;
-localparam USER_WIDTH_ALIGNED = DATA_WIDTH_ALIGNED; // To be fine tuned to reduce memory size
-localparam BE_WIDTH_ALIGNED   = (((DATA_WIDTH+7)/8+7)/8)*8;
+  localparam DATA_WIDTH_ALIGNED = ((DATA_WIDTH + 63) / 64) * 64;
+  localparam USER_WIDTH_ALIGNED = DATA_WIDTH_ALIGNED;  // To be fine tuned to reduce memory size
+  localparam BE_WIDTH_ALIGNED = (((DATA_WIDTH + 7) / 8 + 7) / 8) * 8;
 
-logic [DATA_WIDTH_ALIGNED-1:0]  wdata_aligned;
-logic [USER_WIDTH_ALIGNED-1:0]  wuser_aligned;
-logic [BE_WIDTH_ALIGNED-1:0]    be_aligned;
-logic [DATA_WIDTH_ALIGNED-1:0]  rdata_aligned;
-logic [USER_WIDTH_ALIGNED-1:0]  ruser_aligned;
+  logic [DATA_WIDTH_ALIGNED-1:0] wdata_aligned;
+  logic [USER_WIDTH_ALIGNED-1:0] wuser_aligned;
+  logic [  BE_WIDTH_ALIGNED-1:0] be_aligned;
+  logic [DATA_WIDTH_ALIGNED-1:0] rdata_aligned;
+  logic [USER_WIDTH_ALIGNED-1:0] ruser_aligned;
 
-// align to 64 bits for inferrable macro below
-always_comb begin : p_align
-    wdata_aligned                    ='0;
-    wuser_aligned                    ='0;
-    be_aligned                       ='0;
+  // align to 64 bits for inferrable macro below
+  always_comb begin : p_align
+    wdata_aligned                    = '0;
+    wuser_aligned                    = '0;
+    be_aligned                       = '0;
     wdata_aligned[DATA_WIDTH-1:0]    = wdata_i;
     wuser_aligned[USER_WIDTH-1:0]    = wuser_i;
     be_aligned[BE_WIDTH_ALIGNED-1:0] = be_i;
 
-    rdata_o = rdata_aligned[DATA_WIDTH-1:0];
-    ruser_o = ruser_aligned[USER_WIDTH-1:0];
-end
+    rdata_o                          = rdata_aligned[DATA_WIDTH-1:0];
+    ruser_o                          = ruser_aligned[USER_WIDTH-1:0];
+  end
 
-  for (genvar k = 0; k<(DATA_WIDTH+63)/64; k++) begin : gen_cut
-      // unused byte-enable segments (8bits) are culled by the tool
+  for (genvar k = 0; k < (DATA_WIDTH + 63) / 64; k++) begin : gen_cut
+    // unused byte-enable segments (8bits) are culled by the tool
+    tc_sram_wrapper #(
+        .NumWords   (NUM_WORDS),  // Number of Words in data array
+        .DataWidth  (64),         // Data signal width
+        .ByteWidth  (32'd8),      // Width of a data byte
+        .NumPorts   (32'd1),      // Number of read and write ports
+        .Latency    (32'd1),      // Latency when the read data is available
+        .SimInit    (SIM_INIT),   // Simulation initialization
+        .PrintSimCfg(1'b0)        // Print configuration
+    ) i_tc_sram_wrapper (
+        .clk_i  (clk_i),
+        .rst_ni (rst_ni),
+        .req_i  (req_i),
+        .we_i   (we_i),
+        .be_i   (be_aligned[k*8+:8]),
+        .wdata_i(wdata_aligned[k*64+:64]),
+        .addr_i (addr_i),
+        .rdata_o(rdata_aligned[k*64+:64])
+    );
+    if (USER_EN > 0) begin : gen_mem_user
       tc_sram_wrapper #(
-        .NumWords(NUM_WORDS),           // Number of Words in data array
-        .DataWidth(64),                 // Data signal width
-        .ByteWidth(32'd8),              // Width of a data byte
-        .NumPorts(32'd1),               // Number of read and write ports
-        .Latency(32'd1),                // Latency when the read data is available
-        .SimInit(SIM_INIT),             // Simulation initialization
-        .PrintSimCfg(1'b0)              // Print configuration
-      ) i_tc_sram_wrapper (
-          .clk_i    ( clk_i                     ),
-          .rst_ni   ( rst_ni                    ),
-          .req_i    ( req_i                     ),
-          .we_i     ( we_i                      ),
-          .be_i     ( be_aligned[k*8 +: 8]      ),
-          .wdata_i  ( wdata_aligned[k*64 +: 64] ),
-          .addr_i   ( addr_i                    ),
-          .rdata_o  ( rdata_aligned[k*64 +: 64] )
+          .NumWords   (NUM_WORDS),  // Number of Words in data array
+          .DataWidth  (64),         // Data signal width
+          .ByteWidth  (32'd8),      // Width of a data byte
+          .NumPorts   (32'd1),      // Number of read and write ports
+          .Latency    (32'd1),      // Latency when the read data is available
+          .SimInit    (SIM_INIT),   // Simulation initialization
+          .PrintSimCfg(1'b0)        // Print configuration
+      ) i_tc_sram_wrapper_user (
+          .clk_i  (clk_i),
+          .rst_ni (rst_ni),
+          .req_i  (req_i),
+          .we_i   (we_i),
+          .be_i   (be_aligned[k*8+:8]),
+          .wdata_i(wuser_aligned[k*64+:64]),
+          .addr_i (addr_i),
+          .rdata_o(ruser_aligned[k*64+:64])
       );
-      if (USER_EN > 0) begin : gen_mem_user
-        tc_sram_wrapper #(
-          .NumWords(NUM_WORDS),           // Number of Words in data array
-          .DataWidth(64),                 // Data signal width
-          .ByteWidth(32'd8),              // Width of a data byte
-          .NumPorts(32'd1),               // Number of read and write ports
-          .Latency(32'd1),                // Latency when the read data is available
-          .SimInit(SIM_INIT),             // Simulation initialization
-          .PrintSimCfg(1'b0)              // Print configuration
-        ) i_tc_sram_wrapper_user (
-            .clk_i    ( clk_i                     ),
-            .rst_ni   ( rst_ni                    ),
-            .req_i    ( req_i                     ),
-            .we_i     ( we_i                      ),
-            .be_i     ( be_aligned[k*8 +: 8]      ),
-            .wdata_i  ( wuser_aligned[k*64 +: 64] ),
-            .addr_i   ( addr_i                    ),
-            .rdata_o  ( ruser_aligned[k*64 +: 64] )
-        );
-      end else begin
-        assign ruser_aligned[k*64 +: 64] = '0;
-      end
+    end else begin
+      assign ruser_aligned[k*64+:64] = '0;
+    end
   end
 endmodule : sram

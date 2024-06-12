@@ -166,116 +166,116 @@
 /// | `[63:0]` | `axi_llc_pkg::AxiLlcVersion`  | Shows the `axi_llc_version` |
 ///
 module axi_tagctrl_config #(
-  /// Static AXI LLC configuration.
-  parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
-  /// Give the exact AXI parameters in struct form. This is passed down from
-  /// [`axi_llc_top`](module.axi_llc_top).
-  ///
-  /// Required struct definition in: `axi_llc_pkg`.
-  parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
-  /// Register Width
-  parameter int unsigned RegWidth = 64,
-  /// Register type for HW -> Register direction
-  parameter type conf_regs_d_t  = logic,
-  /// Register type for Register -> HW direction
-  parameter type conf_regs_q_t  = logic,
-  /// Descriptor type. This is requires as this module emits the flush descriptors.
-  /// Struct definition is in [`axi_llc_top`](module.axi_llc_top).
-  parameter type desc_t = logic,
-  /// Address rule struct for `common_cells/addr_decode`. Is used for bypass `axi_demux`
-  /// steering.
-  parameter type rule_full_t = logic,
-  /// Type for indicating the set associativity, same as way_ind_t in `axi_llc_top`.
-  parameter type set_asso_t = logic,
-  /// Address type for the memory regions defined for caching and SPM. The same width as
-  /// the address field of the AXI4+ATOP slave and master port.
-  parameter type addr_full_t = logic,
-  /// Whether to print config of LLC
-  parameter bit  PrintLlcCfg = 0
+    /// Static AXI LLC configuration.
+    parameter axi_llc_pkg::llc_cfg_t Cfg = axi_llc_pkg::llc_cfg_t'{default: '0},
+    /// Give the exact AXI parameters in struct form. This is passed down from
+    /// [`axi_llc_top`](module.axi_llc_top).
+    ///
+    /// Required struct definition in: `axi_llc_pkg`.
+    parameter axi_llc_pkg::llc_axi_cfg_t AxiCfg = axi_llc_pkg::llc_axi_cfg_t'{default: '0},
+    /// Register Width
+    parameter int unsigned RegWidth = 64,
+    /// Register type for HW -> Register direction
+    parameter type conf_regs_d_t = logic,
+    /// Register type for Register -> HW direction
+    parameter type conf_regs_q_t = logic,
+    /// Descriptor type. This is requires as this module emits the flush descriptors.
+    /// Struct definition is in [`axi_llc_top`](module.axi_llc_top).
+    parameter type desc_t = logic,
+    /// Address rule struct for `common_cells/addr_decode`. Is used for bypass `axi_demux`
+    /// steering.
+    parameter type rule_full_t = logic,
+    /// Type for indicating the set associativity, same as way_ind_t in `axi_llc_top`.
+    parameter type set_asso_t = logic,
+    /// Address type for the memory regions defined for caching and SPM. The same width as
+    /// the address field of the AXI4+ATOP slave and master port.
+    parameter type addr_full_t = logic,
+    /// Whether to print config of LLC
+    parameter bit PrintLlcCfg = 0
 ) (
-  /// Rising-edge clock
-  input logic clk_i,
-  /// Asynchronous reset, active low
-  input logic rst_ni,
-  /// Configuration registers Reg -> HW
-  input  conf_regs_q_t conf_regs_i,
-  /// Configuration registers HW -> Reg
-  output conf_regs_d_t conf_regs_o,
-  /// SPM lock.
-  ///
-  /// The cache only stores new tags in ways which are not SPM locked.
-  output set_asso_t spm_lock_o,
-  /// Flushed way flag.
-  ///
-  /// This signal defines all ways which are flushed and have no valid tags in them.
-  /// Tags are not looked up in the ways which are flushed.
-  output set_asso_t flushed_o,
-  /// Flush descriptor output.
-  ///
-  /// Payload data for flush descriptors. These descriptors are generated either by configuring
-  /// cache ways to SPM or when an explicit flush was triggered.
-  output desc_t desc_o,
-  /// Flush descriptor handshake, valid
-  output logic desc_valid_o,
-  /// Flush descriptor handshake, ready
-  input logic desc_ready_i,
-  /// Isolate the AXI slave port.
-  ///
-  /// Flush control sets this signal to prevent active cache accesses during flushing.
-  /// This is to preserve data integrity when a cache flush is underway.
-  output logic llc_isolate_o,
-  /// The AXI salve port is isolated.
-  ///
-  /// This signals the flush FSM that it can safely perform the flush.
-  input logic llc_isolated_i,
-  /// The AW descriptor generation unit is busy.
-  ///
-  /// This signal is needed for the flush control so that no active functional descriptors
-  /// interfere with the flush operation.
-  input logic aw_unit_busy_i,
-  /// The AR descriptor generation unit is busy.
-  ///
-  /// This signal is needed for the flush control so that no active functional descriptors
-  /// interfere with the flush operation.
-  input logic ar_unit_busy_i,
-  /// A flush descriptor is finished flushing its cache line.
-  ///
-  /// This is for controlling the counters which keep track of how many flush descriptors are
-  /// underway.
-  input logic flush_desc_recv_i,
-  /// Result data of the BIST from the tag storage macros.
-  input set_asso_t bist_res_i,
-  /// Result data of the BIST from the tag storage macros is valid.
-  input logic bist_valid_i,
-  /// Address rule for the AXI memory region which maps onto the cache.
-  ///
-  /// This rule is used to set the AXI LLC bypass.
-  /// If all cache ways are flushed, accesses onto this address region take the bypass directly
-  /// to main memory.
-  input  rule_full_t axi_cached_rule_i,
-  /// Address rule for the AXI memory region which maps to the scratch pad memory region.
-  ///
-  /// Accesses are only successful, if the corresponding way is mapped as SPM
-  input  rule_full_t axi_spm_rule_i
+    /// Rising-edge clock
+    input logic clk_i,
+    /// Asynchronous reset, active low
+    input logic rst_ni,
+    /// Configuration registers Reg -> HW
+    input conf_regs_q_t conf_regs_i,
+    /// Configuration registers HW -> Reg
+    output conf_regs_d_t conf_regs_o,
+    /// SPM lock.
+    ///
+    /// The cache only stores new tags in ways which are not SPM locked.
+    output set_asso_t spm_lock_o,
+    /// Flushed way flag.
+    ///
+    /// This signal defines all ways which are flushed and have no valid tags in them.
+    /// Tags are not looked up in the ways which are flushed.
+    output set_asso_t flushed_o,
+    /// Flush descriptor output.
+    ///
+    /// Payload data for flush descriptors. These descriptors are generated either by configuring
+    /// cache ways to SPM or when an explicit flush was triggered.
+    output desc_t desc_o,
+    /// Flush descriptor handshake, valid
+    output logic desc_valid_o,
+    /// Flush descriptor handshake, ready
+    input logic desc_ready_i,
+    /// Isolate the AXI slave port.
+    ///
+    /// Flush control sets this signal to prevent active cache accesses during flushing.
+    /// This is to preserve data integrity when a cache flush is underway.
+    output logic llc_isolate_o,
+    /// The AXI salve port is isolated.
+    ///
+    /// This signals the flush FSM that it can safely perform the flush.
+    input logic llc_isolated_i,
+    /// The AW descriptor generation unit is busy.
+    ///
+    /// This signal is needed for the flush control so that no active functional descriptors
+    /// interfere with the flush operation.
+    input logic aw_unit_busy_i,
+    /// The AR descriptor generation unit is busy.
+    ///
+    /// This signal is needed for the flush control so that no active functional descriptors
+    /// interfere with the flush operation.
+    input logic ar_unit_busy_i,
+    /// A flush descriptor is finished flushing its cache line.
+    ///
+    /// This is for controlling the counters which keep track of how many flush descriptors are
+    /// underway.
+    input logic flush_desc_recv_i,
+    /// Result data of the BIST from the tag storage macros.
+    input set_asso_t bist_res_i,
+    /// Result data of the BIST from the tag storage macros is valid.
+    input logic bist_valid_i,
+    /// Address rule for the AXI memory region which maps onto the cache.
+    ///
+    /// This rule is used to set the AXI LLC bypass.
+    /// If all cache ways are flushed, accesses onto this address region take the bypass directly
+    /// to main memory.
+    input rule_full_t axi_cached_rule_i,
+    /// Address rule for the AXI memory region which maps to the scratch pad memory region.
+    ///
+    /// Accesses are only successful, if the corresponding way is mapped as SPM
+    input rule_full_t axi_spm_rule_i
 );
   // register macros from `common_cells`
   `include "common_cells/registers.svh"
 
   // Type for the Set Associativity puls padding
   localparam int unsigned SetAssoPadWidth = RegWidth - Cfg.SetAssociativity;
-   
+
   localparam int unsigned FlushIdxWidth = cf_math_pkg::idx_width(Cfg.SetAssociativity);
   typedef logic [FlushIdxWidth-1:0] flush_idx_t;
 
   // Counter signals for flush control
-  logic                       clear_cnt;
-  logic                       en_send_cnt, en_recv_cnt;
-  logic                       load_cnt;
-  logic [Cfg.IndexLength-1:0] flush_addr,  to_recieve;
+  logic clear_cnt;
+  logic en_send_cnt, en_recv_cnt;
+  logic load_cnt;
+  logic [Cfg.IndexLength-1:0] flush_addr, to_recieve;
   // Trailing zero counter signals, for flush descriptor generation.
-  flush_idx_t                 to_flush_nub;
-  logic                       lzc_empty;
-  set_asso_t                  flush_way_ind;
+  flush_idx_t       to_flush_nub;
+  logic             lzc_empty;
+  set_asso_t        flush_way_ind;
 
   ////////////////////////
   // AXI Bypass control //
@@ -307,16 +307,16 @@ module axi_tagctrl_config #(
     FsmPreInit
   } flush_fsm_e;
   flush_fsm_e flush_state_d, flush_state_q;
-  logic       switch_state;
-  set_asso_t  to_flush_d,    to_flush_q;
-  logic       load_to_flush;
+  logic switch_state;
+  set_asso_t to_flush_d, to_flush_q;
+  logic load_to_flush;
 
   `FFLARN(flush_state_q, flush_state_d, switch_state, FsmPreInit, clk_i, rst_ni)
   `FFLARN(to_flush_q, to_flush_d, load_to_flush, '0, clk_i, rst_ni)
 
   // Load enable signals, so that the FF is only active when needed.
-  assign switch_state  = (flush_state_d != flush_state_q);
-  assign load_to_flush = (to_flush_d    != to_flush_q);
+  assign switch_state                 = (flush_state_d != flush_state_q);
+  assign load_to_flush                = (to_flush_d != to_flush_q);
 
   // Constant hardware registers
   assign conf_regs_o.bist_out         = bist_res_i;
@@ -327,12 +327,12 @@ module axi_tagctrl_config #(
   assign conf_regs_o.bist_status_done = bist_valid_i;
 
   // Constant register write enables
-  assign conf_regs_o.bist_out_en    = 1'b1;
-  assign conf_regs_o.set_asso_en    = 1'b1;
-  assign conf_regs_o.num_lines_en   = 1'b1;
-  assign conf_regs_o.num_blocks_en  = 1'b1;
-  assign conf_regs_o.version_en     = 1'b1;
-  assign conf_regs_o.bist_status_en = 1'b1;
+  assign conf_regs_o.bist_out_en      = 1'b1;
+  assign conf_regs_o.set_asso_en      = 1'b1;
+  assign conf_regs_o.num_lines_en     = 1'b1;
+  assign conf_regs_o.num_blocks_en    = 1'b1;
+  assign conf_regs_o.version_en       = 1'b1;
+  assign conf_regs_o.bist_status_en   = 1'b1;
 
   always_comb begin : proc_axi_llc_cfg
     // Default assignments
@@ -341,40 +341,40 @@ module axi_tagctrl_config #(
     conf_regs_o.cfg_flush     = conf_regs_i.cfg_flush;
     conf_regs_o.commit_cfg    = conf_regs_i.commit_cfg;
     conf_regs_o.flushed       = conf_regs_i.flushed;
-    
+
     // Register enables
-    conf_regs_o.cfg_spm_en    = 1'b1;   // default one
-    conf_regs_o.cfg_flush_en  = 1'b1;   // default one
-    conf_regs_o.commit_cfg_en = 1'b0;   // default disabled
-    conf_regs_o.flushed_en    = 1'b0;   // default disabled
-    
+    conf_regs_o.cfg_spm_en    = 1'b1;  // default one
+    conf_regs_o.cfg_flush_en  = 1'b1;  // default one
+    conf_regs_o.commit_cfg_en = 1'b0;  // default disabled
+    conf_regs_o.flushed_en    = 1'b0;  // default disabled
+
     // Flush state machine
-    flush_state_d  = flush_state_q;
+    flush_state_d             = flush_state_q;
     // Slave port is isolated during flush.
-    llc_isolate_o  = 1'b1;
+    llc_isolate_o             = 1'b1;
     // To flush register, holds the ways which have to be flushed.
-    to_flush_d     = to_flush_q;
+    to_flush_d                = to_flush_q;
     // Emit flush descriptors.
-    desc_valid_o   = 1'b0;
+    desc_valid_o              = 1'b0;
     // Default signal definitions for the descriptor send and receive counter control.
-    clear_cnt      = 1'b0;
-    en_send_cnt    = 1'b0;
-    en_recv_cnt    = 1'b0;
-    load_cnt       = 1'b0;
+    clear_cnt                 = 1'b0;
+    en_send_cnt               = 1'b0;
+    en_recv_cnt               = 1'b0;
+    load_cnt                  = 1'b0;
 
     // FSM for controlling the AW AR input to the cache and flush control
     unique case (flush_state_q)
-      FsmIdle:  begin
+      FsmIdle: begin
         // this state is normal operation, allow Cfg editing of the fields `CfgSpm` and `CfgFlush`
         // and do not isolate main AXI
-        conf_regs_o.cfg_spm_en    = 1'b0;
-        conf_regs_o.cfg_flush_en  = 1'b0;
-        llc_isolate_o             = 1'b0;
+        conf_regs_o.cfg_spm_en   = 1'b0;
+        conf_regs_o.cfg_flush_en = 1'b0;
+        llc_isolate_o            = 1'b0;
         // Change state, if there is a flush request, i.e. CommitCfg was set
         if (conf_regs_i.commit_cfg) begin
-          conf_regs_o.commit_cfg      = 1'b0;   // Clear the commit configuration flag
-          conf_regs_o.commit_cfg_en   = 1'b1;
-          flush_state_d               = FsmWaitAx;
+          conf_regs_o.commit_cfg    = 1'b0;  // Clear the commit configuration flag
+          conf_regs_o.commit_cfg_en = 1'b1;
+          flush_state_d             = FsmWaitAx;
         end
       end
       FsmWaitAx: begin
@@ -395,17 +395,17 @@ module axi_tagctrl_config #(
         // the flush operation has progressed
         // define if the user requested a flush
         if (|conf_regs_i.cfg_flush) begin
-          to_flush_d              = conf_regs_i.cfg_flush & ~conf_regs_i.flushed;
+          to_flush_d = conf_regs_i.cfg_flush & ~conf_regs_i.flushed;
         end else begin
-          to_flush_d              = conf_regs_i.cfg_spm & ~conf_regs_i.flushed;
-          conf_regs_o.flushed     = conf_regs_i.cfg_spm & conf_regs_i.flushed;
-          conf_regs_o.flushed_en  = 1'b1;
+          to_flush_d             = conf_regs_i.cfg_spm & ~conf_regs_i.flushed;
+          conf_regs_o.flushed    = conf_regs_i.cfg_spm & conf_regs_i.flushed;
+          conf_regs_o.flushed_en = 1'b1;
         end
         // now determine if we have something to do at all
         if (to_flush_d == '0) begin
           // nothing to flush, go to idle
           flush_state_d = FsmIdle;
-          
+
           conf_regs_o.cfg_flush = set_asso_t'(1'b0);
         end else begin
           flush_state_d = FsmSendFlush;
@@ -429,10 +429,10 @@ module axi_tagctrl_config #(
           en_recv_cnt = 1'b1;
         end
       end
-      FsmWaitFlush : begin
+      FsmWaitFlush: begin
         // this state waits till all flush operations have exited the cache, then `FsmEndFlush`
         if (flush_desc_recv_i) begin
-          if(to_recieve == {Cfg.IndexLength{1'b0}}) begin
+          if (to_recieve == {Cfg.IndexLength{1'b0}}) begin
             flush_state_d = FsmEndFlush;
           end else begin
             en_recv_cnt = 1'b1;
@@ -443,18 +443,18 @@ module axi_tagctrl_config #(
         // this state decides, if we have other ways to flush, or if we can go back to idle
         clear_cnt = 1'b1;
         if (to_flush_q == flush_way_ind) begin
-          flush_state_d = FsmIdle;
+          flush_state_d          = FsmIdle;
           // reset the flushed register to SPM as new requests can enter the cache
-          conf_regs_o.flushed     = conf_regs_i.cfg_spm;
-          conf_regs_o.flushed_en  = 1'b1;
-          to_flush_d    = set_asso_t'(1'b0);
+          conf_regs_o.flushed    = conf_regs_i.cfg_spm;
+          conf_regs_o.flushed_en = 1'b1;
+          to_flush_d             = set_asso_t'(1'b0);
           // Clear the `CfgFlush` register, load enable is default '1
-          conf_regs_o.cfg_flush = set_asso_t'(1'b0);
+          conf_regs_o.cfg_flush  = set_asso_t'(1'b0);
         end else begin
           // there are still ways to flush
-          flush_state_d = FsmInitFlush;
-          conf_regs_o.flushed     = conf_regs_i.flushed | flush_way_ind;
-          conf_regs_o.flushed_en  = 1'b1;
+          flush_state_d          = FsmInitFlush;
+          conf_regs_o.flushed    = conf_regs_i.flushed | flush_way_ind;
+          conf_regs_o.flushed_en = 1'b1;
         end
       end
       FsmPreInit: begin
@@ -465,14 +465,14 @@ module axi_tagctrl_config #(
         // to be mapped as SPM, so that they are not used. However they can be enabled using
         // the normal SPM configuration.
         if (bist_valid_i) begin
-          flush_state_d = FsmIdle;
-          conf_regs_o.cfg_spm     = bist_res_i;
+          flush_state_d          = FsmIdle;
+          conf_regs_o.cfg_spm    = bist_res_i;
           // No load specified for CfgSpm, as per default the reg is loaded anyway.
-          conf_regs_o.flushed     = bist_res_i;
-          conf_regs_o.flushed_en  = 1'b1;
+          conf_regs_o.flushed    = bist_res_i;
+          conf_regs_o.flushed_en = 1'b1;
         end
       end
-      default : /*do nothing*/;
+      default:  /*do nothing*/;
     endcase
   end
 
@@ -499,12 +499,12 @@ module axi_tagctrl_config #(
 
   // This trailing zero counter determines which way should be flushed next.
   lzc #(
-    .WIDTH ( Cfg.SetAssociativity ),
-    .MODE  ( 1'b0                 )
+      .WIDTH(Cfg.SetAssociativity),
+      .MODE (1'b0)
   ) i_lzc_flush (
-    .in_i    ( to_flush_q   ),
-    .cnt_o   ( to_flush_nub ),
-    .empty_o ( lzc_empty    )
+      .in_i   (to_flush_q),
+      .cnt_o  (to_flush_nub),
+      .empty_o(lzc_empty)
   );
   // Decode flush way indicator from binary to one-hot signal.
   assign flush_way_ind = (lzc_empty) ? set_asso_t'(1'b0) : set_asso_t'(64'd1) << to_flush_nub;
@@ -514,42 +514,50 @@ module axi_tagctrl_config #(
   ///////////////////////////////
   // This counts how many flush descriptors have been sent.
   counter #(
-    .WIDTH ( Cfg.IndexLength )
+      .WIDTH(Cfg.IndexLength)
   ) i_flush_send_counter (
-    .clk_i      ( clk_i                   ),
-    .rst_ni     ( rst_ni                  ),
-    .clear_i    ( clear_cnt               ),
-    .en_i       ( en_send_cnt             ),
-    .load_i     ( load_cnt                ),
-    .down_i     ( 1'b0                    ),
-    .d_i        ( {Cfg.IndexLength{1'b0}} ),
-    .q_o        ( flush_addr              ),
-    .overflow_o ( /*not used*/            )
+      .clk_i     (clk_i),
+      .rst_ni    (rst_ni),
+      .clear_i   (clear_cnt),
+      .en_i      (en_send_cnt),
+      .load_i    (load_cnt),
+      .down_i    (1'b0),
+      .d_i       ({Cfg.IndexLength{1'b0}}),
+      .q_o       (flush_addr),
+      .overflow_o(  /*not used*/)
   );
 
   // This counts how many flush descriptors are not done flushing.
   counter #(
-    .WIDTH ( Cfg.IndexLength )
+      .WIDTH(Cfg.IndexLength)
   ) i_flush_recv_counter (
-    .clk_i      ( clk_i                   ),
-    .rst_ni     ( rst_ni                  ),
-    .clear_i    ( clear_cnt               ),
-    .en_i       ( en_recv_cnt             ),
-    .load_i     ( load_cnt                ),
-    .down_i     ( 1'b1                    ),
-    .d_i        ( {Cfg.IndexLength{1'b1}} ),
-    .q_o        ( to_recieve              ),
-    .overflow_o ( /*not used*/            )
+      .clk_i     (clk_i),
+      .rst_ni    (rst_ni),
+      .clear_i   (clear_cnt),
+      .en_i      (en_recv_cnt),
+      .load_i    (load_cnt),
+      .down_i    (1'b1),
+      .d_i       ({Cfg.IndexLength{1'b1}}),
+      .q_o       (to_recieve),
+      .overflow_o(  /*not used*/)
   );
 
-// pragma translate_off
+  // pragma translate_off
 `ifndef VERILATOR
   initial begin : proc_check_params
-    set_asso      : assert (Cfg.SetAssociativity <= RegWidth) else
-        $fatal(1, $sformatf("LlcCfg: The maximum set associativity (%0d) has to be smaller than \
+    set_asso :
+    assert (Cfg.SetAssociativity <= RegWidth)
+    else
+      $fatal(
+          1,
+          $sformatf(
+              "LlcCfg: The maximum set associativity (%0d) has to be smaller than \
                              or equal to the the configuration register width in bits: %0d (dec).\n \
                              Reason: Set associativity has to fit inside one register.",
-                             Cfg.SetAssociativity, RegWidth));
+              Cfg.SetAssociativity,
+              RegWidth
+          )
+      );
   end
 
   if (PrintLlcCfg) begin : gen_llc_hello
@@ -561,36 +569,36 @@ module axi_tagctrl_config #(
       $display("%m");
       $display("###############################################################################");
       $display("Cache Size parameters:");
-      $display("Max Cache/SPM size:                (decimal): %d KiB", Cfg.SPMLength/1024);
-      $display("SetAssociativity (Number of Ways)  (decimal): %d", Cfg.SetAssociativity  );
-      $display("Number of Cache Lines per Set      (decimal): %d", Cfg.NumLines          );
-      $display("Number of Blocks per Cache Line    (decimal): %d", Cfg.NumBlocks         );
-      $display("Block Size in Bits                 (decimal): %d", Cfg.BlockSize         );
-      $display("Tag Length of AXI Address          (decimal): %d", Cfg.TagLength         );
-      $display("Index Length of AXI Address        (decimal): %d", Cfg.IndexLength       );
-      $display("Block Offset Length of AXI Address (decimal): %d", Cfg.BlockOffsetLength );
-      $display("Byte Offset Length of AXI Address  (decimal): %d", Cfg.ByteOffsetLength  );
+      $display("Max Cache/SPM size:                (decimal): %d KiB", Cfg.SPMLength / 1024);
+      $display("SetAssociativity (Number of Ways)  (decimal): %d", Cfg.SetAssociativity);
+      $display("Number of Cache Lines per Set      (decimal): %d", Cfg.NumLines);
+      $display("Number of Blocks per Cache Line    (decimal): %d", Cfg.NumBlocks);
+      $display("Block Size in Bits                 (decimal): %d", Cfg.BlockSize);
+      $display("Tag Length of AXI Address          (decimal): %d", Cfg.TagLength);
+      $display("Index Length of AXI Address        (decimal): %d", Cfg.IndexLength);
+      $display("Block Offset Length of AXI Address (decimal): %d", Cfg.BlockOffsetLength);
+      $display("Byte Offset Length of AXI Address  (decimal): %d", Cfg.ByteOffsetLength);
       $display("###############################################################################");
       $display("AXI4 Port parameters:");
       $display("Slave port (CPU):");
-      $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth );
-      $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull  );
-      $display("DATA width (decimal): %d", AxiCfg.DataWidthFull  );
-      $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8);
+      $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth);
+      $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull);
+      $display("DATA width (decimal): %d", AxiCfg.DataWidthFull);
+      $display("STRB width (decimal): %d", AxiCfg.DataWidthFull / 8);
       $display("Master port (memory):");
       $display("ID   width (decimal): %d", AxiCfg.SlvPortIdWidth + 1);
-      $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull     );
-      $display("DATA width (decimal): %d", AxiCfg.DataWidthFull     );
-      $display("STRB width (decimal): %d", AxiCfg.DataWidthFull/8   );
+      $display("ADDR width (decimal): %d", AxiCfg.AddrWidthFull);
+      $display("DATA width (decimal): %d", AxiCfg.DataWidthFull);
+      $display("STRB width (decimal): %d", AxiCfg.DataWidthFull / 8);
       $display("Address mapping information:");
-      $display("Cached region Start address (hex): %h", axi_cached_rule_i.start_addr );
-      $display("Cached region End   address (hex): %h", axi_cached_rule_i.end_addr   );
-      $display("SPM    region Start address (hex): %h", axi_spm_rule_i.start_addr    );
-      $display("SPM    region End   address (hex): %h", axi_spm_rule_i.end_addr      );
+      $display("Cached region Start address (hex): %h", axi_cached_rule_i.start_addr);
+      $display("Cached region End   address (hex): %h", axi_cached_rule_i.end_addr);
+      $display("SPM    region Start address (hex): %h", axi_spm_rule_i.start_addr);
+      $display("SPM    region End   address (hex): %h", axi_spm_rule_i.end_addr);
       $display("###############################################################################");
       $display("###############################################################################");
     end
   end
 `endif
-// pragma translate_on
+  // pragma translate_on
 endmodule

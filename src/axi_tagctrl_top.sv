@@ -9,14 +9,14 @@
 
 module axi_tagctrl_top #(
     /// DRAM memory Base
-    parameter int unsigned DRAMMemBase = 64'd0,
+    parameter int unsigned DRAMMemBase      = 64'd0,
     /// DRAM memory Length
-    parameter int unsigned DRAMMemLength = 64'd0,
+    parameter int unsigned DRAMMemLength    = 64'd0,
     /// Capability size in memory
-    parameter int unsigned CapSize = 128,
+    parameter int unsigned CapSize          = 128,
     /// Tag Cache base address in memory. Location of the Tag Cache
     /// structure
-    parameter int unsigned TagCacheMemBase = 0,
+    parameter int unsigned TagCacheMemBase  = 0,
     /// The set-associativity of the Tag Cache.
     ///
     /// This parameter determines how many ways/sets will be instantiated.
@@ -145,8 +145,8 @@ module axi_tagctrl_top #(
       NumBlocks         : NumBlocks,
       BlockSize         : AxiCfg.DataWidthFull,
       TagLength         :
-      AxiCfg
-      .AddrWidthFull - unsigned'(
+      AxiCfg.AddrWidthFull
+      - unsigned'(
       $clog2(NumLines)
       ) - unsigned'(
       $clog2(NumBlocks)
@@ -159,19 +159,19 @@ module axi_tagctrl_top #(
       SPMLength         : SetAssociativity * NumLines * NumBlocks * (AxiCfg.DataWidthFull / 32'd8)
   };
   localparam axi_tagctrl_pkg::tagctrl_cfg_t Cfg = axi_tagctrl_pkg::tagctrl_cfg_t
-  '{
-    AxiIdWidth: AxiIdWidth,
-    AxiAddrWidth: AxiAddrWidth,
-    AxiDataWidth: AxiDataWidth,
-    CapSize: CapSize,
-    DRAMMemBase: DRAMMemBase,
-    DRAMMemLength : DRAMMemLength,
-    TagCacheMemBase: TagCacheMemBase,
-    TagWFifoDepth: 4,
-    TagAXFifoDepth: 4,
-    TagRFifoDepth:  8,
-    tagc_cfg: LLC_Cfg
-   };
+'{
+      AxiIdWidth: AxiIdWidth,
+      AxiAddrWidth: AxiAddrWidth,
+      AxiDataWidth: AxiDataWidth,
+      CapSize: CapSize,
+      DRAMMemBase: DRAMMemBase,
+      DRAMMemLength : DRAMMemLength,
+      TagCacheMemBase: TagCacheMemBase,
+      TagWFifoDepth: 4,
+      TagAXFifoDepth: 4,
+      TagRFifoDepth: 8,
+      tagc_cfg: LLC_Cfg
+  };
 
 
   typedef struct packed {
@@ -198,14 +198,14 @@ module axi_tagctrl_top #(
 
   // definition of the structs that are between the units and the ways
   typedef struct packed {
-    axi_llc_pkg::cache_unit_e         cache_unit;  // which unit does the access
+    axi_llc_pkg::cache_unit_e                  cache_unit;  // which unit does the access
     logic [Cfg.tagc_cfg.SetAssociativity -1:0] way_ind;     // to which way the access goes
     logic [Cfg.tagc_cfg.IndexLength      -1:0] line_addr;   // cache line address
     logic [Cfg.tagc_cfg.BlockOffsetLength-1:0] blk_offset;  // block offset
-    logic                             we;          // write enable
-    axi_data_t                        data;        // input data
-    axi_strb_t                        strb;        // write enable (equals AXI strb)
-    axi_data_t                        bit_en;        // write enable (equals AXI strb)
+    logic                                      we;          // write enable
+    axi_data_t                                 data;        // input data
+    axi_strb_t                                 strb;        // write enable (equals AXI strb)
+    axi_data_t                                 bit_en;      // write enable (equals AXI strb)
   } way_inp_t;
 
   typedef struct packed {
@@ -228,27 +228,27 @@ module axi_tagctrl_top #(
 
   // struct to pass between the tag controller and the tag cache
   typedef struct packed {
-    axi_data_t                data;        // input data
-    axi_data_t                bit_en;      // write bit enable
-    axi_strb_t                        strb;        // write enable (equals AXI strb)
+    axi_data_t data;    // input data
+    axi_data_t bit_en;  // write bit enable
+    axi_strb_t strb;    // write enable (equals AXI strb)
   } tagc_oup_t;
 
   typedef struct packed {
-    axi_slv_id_t id;     // AXI id of the count operation
-    axi_data_t                data;        // read data from the way
+    axi_slv_id_t    id;    // AXI id of the count operation
+    axi_data_t      data;  // read data from the way
     axi_pkg::resp_t resp;
-    logic last;
+    logic           last;
   } tagc_inp_t;
 
   typedef struct packed {
     // AXI4+ATOP specific descriptor signals
-    axi_slv_id_t     a_x_id;       // AXI ID from slave port
-    axi_addr_t       a_x_addr;     // memory address
-    axi_pkg::len_t   a_x_len;      // AXI burst length
-    axi_pkg::size_t  a_x_size;     // AXI burst size
-    axi_pkg::burst_t a_x_burst;    // AXI burst type
-    axi_pkg::resp_t  x_resp;       // AXI response signal, for error propagation
-    axi_pkg::len_t   a_x_tag_len;  // Tag len request to the Tag Cache
+    axi_slv_id_t a_x_id;  // AXI ID from slave port
+    axi_addr_t a_x_addr;  // memory address
+    axi_pkg::len_t a_x_len;  // AXI burst length
+    axi_pkg::size_t a_x_size;  // AXI burst size
+    axi_pkg::burst_t a_x_burst;  // AXI burst type
+    axi_pkg::resp_t x_resp;  // AXI response signal, for error propagation
+    axi_pkg::len_t a_x_tag_len;  // Tag len request to the Tag Cache
     logic x_last;  // Last descriptor of a burst
     // Cache specific descriptor signals
     logic spm;  // this descriptor targets a SPM region in the cache
@@ -275,12 +275,12 @@ module axi_tagctrl_top #(
   slv_resp_t from_tagctrl_resp, tagctrl_resp, tagc_resp;
 
   // signals between channel splitters and rw_arb_tree
-  tagc_desc_t     [      2:0] ax_desc;
-  logic            [2:0]     ax_desc_valid;
-  logic            [2:0]     ax_desc_ready;
+  tagc_desc_t [2:0] ax_desc;
+  logic       [2:0] ax_desc_valid;
+  logic       [2:0] ax_desc_ready;
 
   // descriptor from the tagctrl_ar to the ar FIFO
-  tagc_desc_t             tagctrl_ar_desc;
+  tagc_desc_t       tagctrl_ar_desc;
   logic tagctrl_ar_valid, tagctrl_ar_ready;
 
   // descriptor from the ar FIFO to the tagctrl_r unit
@@ -325,9 +325,9 @@ module axi_tagctrl_top #(
   logic read_desc_valid, read_desc_ready;
 
   // signals from the unit to the data_ways
-  way_inp_t [      3:0] to_way;
-  logic       [3:0]     to_way_valid;
-  logic       [3:0]     to_way_ready;
+  way_inp_t [3:0] to_way;
+  logic     [3:0] to_way_valid;
+  logic     [3:0] to_way_ready;
 
   // read signals from the data SRAMs
   way_oup_t evict_way_out, read_way_out;
@@ -348,7 +348,7 @@ module axi_tagctrl_top #(
 
   // BIST from tag_store
   logic [Cfg.tagc_cfg.SetAssociativity-1:0] bist_res;
-  logic                            bist_valid;
+  logic                                     bist_valid;
 
   // global flush signals
   logic tagctrl_isolate, tagctrl_isolated, aw_unit_busy, ar_unit_busy, flush_recv;
@@ -374,28 +374,28 @@ module axi_tagctrl_top #(
       .addr_full_t  (axi_addr_t),
       .PrintLlcCfg  (PrintLlcCfg)
   ) i_tagctrl_config (
-      .clk_i            (clk_i),
-      .rst_ni           (rst_ni),
+      .clk_i             (clk_i),
+      .rst_ni            (rst_ni),
       // Configuration registers
       .conf_regs_i,
       .conf_regs_o,
-      .spm_lock_o       ( ),
-      .flushed_o        (flushed),
-      .desc_o           (ax_desc[axi_llc_pkg::ConfigUnit]),
-      .desc_valid_o     (ax_desc_valid[axi_llc_pkg::ConfigUnit]),
-      .desc_ready_i     (ax_desc_ready[axi_llc_pkg::ConfigUnit]),
+      .spm_lock_o        (),
+      .flushed_o         (flushed),
+      .desc_o            (ax_desc[axi_llc_pkg::ConfigUnit]),
+      .desc_valid_o      (ax_desc_valid[axi_llc_pkg::ConfigUnit]),
+      .desc_ready_i      (ax_desc_ready[axi_llc_pkg::ConfigUnit]),
       // flush control signals to prevent new data in ax_cutter loading
-      .tagctrl_isolate_o    (tagctrl_isolate),
-      .tagctrl_isolated_i   (tagctrl_isolated),
-      .aw_unit_busy_i   (aw_unit_busy),
-      .ar_unit_busy_i   (ar_unit_busy),
-      .flush_desc_recv_i(flush_recv),
+      .tagctrl_isolate_o (tagctrl_isolate),
+      .tagctrl_isolated_i(tagctrl_isolated),
+      .aw_unit_busy_i    (aw_unit_busy),
+      .ar_unit_busy_i    (ar_unit_busy),
+      .flush_desc_recv_i (flush_recv),
       // BIST input
-      .bist_res_i       (bist_res),
-      .bist_valid_i     (bist_valid),
+      .bist_res_i        (bist_res),
+      .bist_valid_i      (bist_valid),
       // address rules for bypass selection
-      .axi_cached_rule_i(cached_addr_rule),
-      .axi_spm_rule_i   ('0)
+      .axi_cached_rule_i (cached_addr_rule),
+      .axi_spm_rule_i    ('0)
   );
 
   //--------------------------------//
@@ -415,8 +415,8 @@ module axi_tagctrl_top #(
       .ax_chan_valid_i    (to_tagctrl_req.ar_valid),
       .ax_chan_ready_o    (from_tagctrl_resp.ar_ready),
       .tagc_desc_o        (ax_desc[axi_llc_pkg::ArChanUnit]),
-      .tagc_valid_o  (ax_desc_valid[axi_llc_pkg::ArChanUnit]),
-      .tagc_ready_i  (ax_desc_ready[axi_llc_pkg::ArChanUnit]),
+      .tagc_valid_o       (ax_desc_valid[axi_llc_pkg::ArChanUnit]),
+      .tagc_ready_i       (ax_desc_ready[axi_llc_pkg::ArChanUnit]),
       .ax_mem_chan_mst_o  (tagctrl_req.ar),
       .ax_mem_chan_valid_o(tagctrl_req.ar_valid),
       .ax_mem_chan_ready_i(tagctrl_resp.ar_ready),
@@ -445,25 +445,25 @@ module axi_tagctrl_top #(
   );
 
   axi_tagctrl_r #(
-      .Cfg        (Cfg),
-      .tagctrl_desc_t     (tagctrl_desc_t),
-      .tagc_inp_t (tagc_inp_t),
-      .r_chan_t   (slv_r_chan_t)
+      .Cfg           (Cfg),
+      .tagctrl_desc_t(tagctrl_desc_t),
+      .tagc_inp_t    (tagc_inp_t),
+      .r_chan_t      (slv_r_chan_t)
   ) i_axi_tag_ctrl_r (
       .clk_i,
       .rst_ni,
-      .tagctrl_desc_i       (tagctrl_r_desc),
-      .tagctrl_desc_valid_i (tagctrl_r_valid),
-      .tagctrl_desc_ready_o (tagctrl_r_ready),
-      .r_chan_mst_i      (tagctrl_resp.r),
-      .r_chan_valid_i    (tagctrl_resp.r_valid),
-      .r_chan_ready_o    (tagctrl_req.r_ready),
-      .tagc_inp_r_i      (tagc_r_inp),
-      .tagc_inp_r_valid_i(tagc_r_inp_valid),
-      .tagc_inp_r_ready_o(tagc_r_inp_ready),
-      .r_chan_slv_o      (from_tagctrl_resp.r),
-      .r_chan_slv_valid_o(from_tagctrl_resp.r_valid),
-      .r_chan_slv_ready_i(to_tagctrl_req.r_ready)
+      .tagctrl_desc_i      (tagctrl_r_desc),
+      .tagctrl_desc_valid_i(tagctrl_r_valid),
+      .tagctrl_desc_ready_o(tagctrl_r_ready),
+      .r_chan_mst_i        (tagctrl_resp.r),
+      .r_chan_valid_i      (tagctrl_resp.r_valid),
+      .r_chan_ready_o      (tagctrl_req.r_ready),
+      .tagc_inp_r_i        (tagc_r_inp),
+      .tagc_inp_r_valid_i  (tagc_r_inp_valid),
+      .tagc_inp_r_ready_o  (tagc_r_inp_ready),
+      .r_chan_slv_o        (from_tagctrl_resp.r),
+      .r_chan_slv_valid_o  (from_tagctrl_resp.r_valid),
+      .r_chan_slv_ready_i  (to_tagctrl_req.r_ready)
   );
 
   //--------------------------------//
@@ -483,14 +483,14 @@ module axi_tagctrl_top #(
       .ax_chan_valid_i    (to_tagctrl_req.aw_valid),
       .ax_chan_ready_o    (from_tagctrl_resp.aw_ready),
       .tagc_desc_o        (ax_desc[axi_llc_pkg::AwChanUnit]),
-      .tagc_valid_o  (ax_desc_valid[axi_llc_pkg::AwChanUnit]),
-      .tagc_ready_i  (ax_desc_ready[axi_llc_pkg::AwChanUnit]),
+      .tagc_valid_o       (ax_desc_valid[axi_llc_pkg::AwChanUnit]),
+      .tagc_ready_i       (ax_desc_ready[axi_llc_pkg::AwChanUnit]),
       .ax_mem_chan_mst_o  (tagctrl_req.aw),
-      .ax_mem_chan_valid_o   (tagctrl_req.aw_valid),
-      .ax_mem_chan_ready_i   (tagctrl_resp.aw_ready),
-      .tagctrl_desc_o        (tagctrl_aw_desc),
-      .tagctrl_valid_o       (tagctrl_aw_valid),
-      .tagctrl_ready_i       (tagctrl_aw_ready)
+      .ax_mem_chan_valid_o(tagctrl_req.aw_valid),
+      .ax_mem_chan_ready_i(tagctrl_resp.aw_ready),
+      .tagctrl_desc_o     (tagctrl_aw_desc),
+      .tagctrl_valid_o    (tagctrl_aw_valid),
+      .tagctrl_ready_i    (tagctrl_aw_ready)
   );
 
   // FIFO between AW master and W master, there can be DEPTH inflight transactions
@@ -513,36 +513,36 @@ module axi_tagctrl_top #(
   );
 
   axi_tagctrl_w #(
-      .Cfg       (Cfg),
-      .tagctrl_desc_t    (tagctrl_desc_t),
-      .tagc_oup_t(tagc_oup_t),
-      .w_chan_t  (w_chan_t),
-      .b_chan_t  (slv_b_chan_t)
+      .Cfg           (Cfg),
+      .tagctrl_desc_t(tagctrl_desc_t),
+      .tagc_oup_t    (tagc_oup_t),
+      .w_chan_t      (w_chan_t),
+      .b_chan_t      (slv_b_chan_t)
   ) i_axi_tag_ctrl_w (
       .clk_i,
       .rst_ni,
       .test_i,
-      .tagctrl_desc_i            (tagctrl_w_desc),
-      .tagctrl_desc_valid_i      (tagctrl_w_valid),
-      .tagctrl_desc_ready_o      (tagctrl_w_ready),
-      .w_chan_slv_i      (to_tagctrl_req.w),
-      .w_chan_slv_valid_i    (to_tagctrl_req.w_valid),
-      .w_chan_slv_ready_o    (from_tagctrl_resp.w_ready),
-      .b_chan_slv_o      (from_tagctrl_resp.b),
-      .b_chan_slv_valid_o(from_tagctrl_resp.b_valid),
-      .b_chan_slv_ready_i(to_tagctrl_req.b_ready),
-      .tagc_oup_o      (tagc_w_oup),
-      .tagc_oup_valid_o(tagc_w_oup_valid),
-      .tagc_oup_ready_i(tagc_w_oup_ready),
-      .tagc_resp_i (tagc_b_chan),
-      .tagc_resp_valid_i(tagc_b_chan_valid),
-      .tagc_resp_ready_o(tagc_b_chan_ready),
-      .w_chan_mst_o      (tagctrl_req.w),
-      .w_chan_mst_valid_o(tagctrl_req.w_valid),
-      .w_chan_mst_ready_i(tagctrl_resp.w_ready),
-      .b_chan_mst_i      (tagctrl_resp.b),
-      .b_chan_mst_valid_i(tagctrl_resp.b_valid),
-      .b_chan_mst_ready_o(tagctrl_req.b_ready)
+      .tagctrl_desc_i      (tagctrl_w_desc),
+      .tagctrl_desc_valid_i(tagctrl_w_valid),
+      .tagctrl_desc_ready_o(tagctrl_w_ready),
+      .w_chan_slv_i        (to_tagctrl_req.w),
+      .w_chan_slv_valid_i  (to_tagctrl_req.w_valid),
+      .w_chan_slv_ready_o  (from_tagctrl_resp.w_ready),
+      .b_chan_slv_o        (from_tagctrl_resp.b),
+      .b_chan_slv_valid_o  (from_tagctrl_resp.b_valid),
+      .b_chan_slv_ready_i  (to_tagctrl_req.b_ready),
+      .tagc_oup_o          (tagc_w_oup),
+      .tagc_oup_valid_o    (tagc_w_oup_valid),
+      .tagc_oup_ready_i    (tagc_w_oup_ready),
+      .tagc_resp_i         (tagc_b_chan),
+      .tagc_resp_valid_i   (tagc_b_chan_valid),
+      .tagc_resp_ready_o   (tagc_b_chan_ready),
+      .w_chan_mst_o        (tagctrl_req.w),
+      .w_chan_mst_valid_o  (tagctrl_req.w_valid),
+      .w_chan_mst_ready_i  (tagctrl_resp.w_ready),
+      .b_chan_mst_i        (tagctrl_resp.b),
+      .b_chan_mst_valid_i  (tagctrl_resp.b_valid),
+      .b_chan_mst_ready_o  (tagctrl_req.b_ready)
   );
 
   // arbitration tree which funnels the flush, read and write descriptors together
@@ -702,13 +702,13 @@ module axi_tagctrl_top #(
 
   // write unit
   axi_tagc_write_unit #(
-      .Cfg       (Cfg.tagc_cfg),
-      .AxiCfg    (AxiCfg),
-      .desc_t     (tagc_desc_t),
-      .way_inp_t  (way_inp_t),
-      .lock_t     (lock_t),
-      .w_chan_t   (tagc_oup_t),
-      .b_chan_t   (slv_b_chan_t)
+      .Cfg      (Cfg.tagc_cfg),
+      .AxiCfg   (AxiCfg),
+      .desc_t   (tagc_desc_t),
+      .way_inp_t(way_inp_t),
+      .lock_t   (lock_t),
+      .w_chan_t (tagc_oup_t),
+      .b_chan_t (slv_b_chan_t)
   ) i_write_unit (
       .clk_i          (clk_i),
       .rst_ni         (rst_ni),
@@ -746,9 +746,9 @@ module axi_tagctrl_top #(
       .desc_i         (read_desc),
       .desc_valid_i   (read_desc_valid),
       .desc_ready_o   (read_desc_ready),
-      .r_inp_slv_o   (tagc_r_inp),
-      .r_inp_valid_o (tagc_r_inp_valid),
-      .r_inp_ready_i (tagc_r_inp_ready),
+      .r_inp_slv_o    (tagc_r_inp),
+      .r_inp_valid_o  (tagc_r_inp_valid),
+      .r_inp_ready_i  (tagc_r_inp_ready),
       .way_inp_o      (to_way[axi_llc_pkg::RChanUnit]),
       .way_inp_valid_o(to_way_valid[axi_llc_pkg::RChanUnit]),
       .way_inp_ready_i(to_way_ready[axi_llc_pkg::RChanUnit]),
@@ -763,7 +763,7 @@ module axi_tagctrl_top #(
   // data storage
   axi_tagctrl_ways #(
       .Cfg         (Cfg.tagc_cfg),
-      .AxiCfg    (AxiCfg),
+      .AxiCfg      (AxiCfg),
       .way_inp_t   (way_inp_t),
       .way_oup_t   (way_oup_t),
       .PrintSramCfg(PrintSramCfg)
@@ -817,46 +817,46 @@ module axi_tagctrl_top #(
       .mst_req_o  (mst_req_o),
       .mst_resp_i (mst_resp_i)
   );
-    slv_req_t slv_req_cut;
-    slv_resp_t slv_resp_cut;
+  slv_req_t  slv_req_cut;
+  slv_resp_t slv_resp_cut;
   // Isolation module before demux to easy flushing,
   // AXI requests get stalled while flush is active
   axi_isolate #(
-    .NumPending     ( axi_llc_pkg::MaxTrans ),
-    .AxiAddrWidth   ( AxiAddrWidth          ),
-    .AxiDataWidth   ( AxiDataWidth          ),
-    .AxiIdWidth     ( AxiIdWidth            ),
-    .AxiUserWidth   ( AxiUserWidth          ),
-    .axi_req_t      ( slv_req_t             ),
-    .axi_resp_t     ( slv_resp_t            )
+      .NumPending  (axi_llc_pkg::MaxTrans),
+      .AxiAddrWidth(AxiAddrWidth),
+      .AxiDataWidth(AxiDataWidth),
+      .AxiIdWidth  (AxiIdWidth),
+      .AxiUserWidth(AxiUserWidth),
+      .axi_req_t   (slv_req_t),
+      .axi_resp_t  (slv_resp_t)
   ) i_axi_isolate_flush (
-    .clk_i,
-    .rst_ni,
-    .slv_req_i (slv_req_cut),  // Slave port request
-    .slv_resp_o (slv_resp_cut), // Slave port response
-    .mst_req_o  ( to_tagctrl_req  ),
-    .mst_resp_i ( from_tagctrl_resp  ),
-    .isolate_i  ( tagctrl_isolate   ),
-    .isolated_o ( tagctrl_isolated  )
+      .clk_i,
+      .rst_ni,
+      .slv_req_i (slv_req_cut),  // Slave port request
+      .slv_resp_o (slv_resp_cut), // Slave port response
+      .mst_req_o  ( to_tagctrl_req  ),
+      .mst_resp_i ( from_tagctrl_resp  ),
+      .isolate_i  ( tagctrl_isolate   ),
+      .isolated_o ( tagctrl_isolated  )
   );
 
   axi_cut #(
-  // AXI channel structs
-  .aw_chan_t  (slv_aw_chan_t),
-  .w_chan_t   (w_chan_t),
-  .b_chan_t   (slv_b_chan_t),
-  .ar_chan_t  (slv_ar_chan_t),
-  .r_chan_t   (slv_r_chan_t),
-  .req_t  (slv_req_t),
-  .resp_t (slv_resp_t)
-) i_axi_cut(
-    .clk_i,
-    .rst_ni,
-    .slv_req_i(slv_req_i),
-    .slv_resp_o(slv_resp_o),
-    .mst_req_o(slv_req_cut),
-    .mst_resp_i(slv_resp_cut)
-);
+      // AXI channel structs
+      .aw_chan_t  (slv_aw_chan_t),
+      .w_chan_t   (w_chan_t),
+      .b_chan_t   (slv_b_chan_t),
+      .ar_chan_t  (slv_ar_chan_t),
+      .r_chan_t   (slv_r_chan_t),
+      .req_t  (slv_req_t),
+      .resp_t (slv_resp_t)
+  ) i_axi_cut (
+      .clk_i,
+      .rst_ni,
+      .slv_req_i (slv_req_i),
+      .slv_resp_o(slv_resp_o),
+      .mst_req_o (slv_req_cut),
+      .mst_resp_i(slv_resp_cut)
+  );
 
   // pragma translate_off
 `ifndef VERILATOR

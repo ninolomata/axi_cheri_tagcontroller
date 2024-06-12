@@ -120,108 +120,108 @@
 /// | `refill`    | `logic`            | The refill flag. The descriptor will trigger a read transaction to the main memory, refilling the cache-line.                                                                                                                                                                                               |
 /// | `flush`     | `logic`            | The flush flag. This only gets set when a way should be flushed. It gets only set by descriptors coming from the configuration module.
 module axi_tagctrl_reg_wrap #(
-  /// DRAM memory Base
-  parameter int unsigned DRAMMemBase = 0,
-  /// DRAM memory Length
-  parameter int unsigned DRAMMemLength = 0,
-  /// Capability size in memory
-  parameter int unsigned CapSize = 128,
-  /// Tag Cache base address in memory. Location of the Tag Cache
-  /// structure
-  parameter int unsigned TagCacheMemBase = 0,
-  /// The set-associativity of the LLC.
-  ///
-  /// This parameter determines how many ways/sets will be instantiated.
-  ///
-  /// Restrictions:
-  /// * Minimum value: `32'd1`
-  /// * Maximum value: `32'd63`
-  /// The maximum value depends on the internal register width
-  parameter int unsigned SetAssociativity = 32'd0,
-  /// Number of cache lines per way.
-  ///
-  /// Restrictions:
-  /// * Minimum value: `32'd2`
-  /// * Has to be a power of two.
-  ///
-  /// Note on restrictions:
-  /// The reason is that in the address, at least one bit has to be mapped onto a cache-line index.
-  /// This is a limitation of the *system verilog* language, which requires at least one bit wide
-  /// fields inside of a struct. Further this value has to be a power of 2. This has to do with the
-  /// requirement that the address mapping from the address onto the cache-line index has to be
-  /// continuous.
-  parameter int unsigned NumLines = 32'd0,
-  /// Number of blocks (words) in a cache line.
-  ///
-  /// The width of a block is the same as the data width of the AXI4+ATOP ports. Defined with
-  /// parameter `AxiCfg.DataWidthFull` in bits.
-  ///
-  /// Restrictions:
-  /// * Minimum value: 32'd2
-  /// * Has to be a power of two.
-  ///
-  /// Note on restrictions:
-  /// The same restriction as of parameter `NumLines` applies.
-  parameter int unsigned NumBlocks = 32'd0,
-  /// AXI4+ATOP ID field width of the slave port.
-  /// The ID field width of the master port is this parameter + 1.
-  parameter int unsigned AxiIdWidth = 32'd0,
-  /// AXI4+ATOP address field width of both the slave and master port.
-  parameter int unsigned AxiAddrWidth = 32'd0,
-  /// AXI4+ATOP data field width of both the slave and the master port.
-  parameter int unsigned AxiDataWidth = 32'd0,
-  /// AXI4+ATOP user field width of both the slave and the master port.
-  parameter int unsigned AxiUserWidth = 32'd0,
-  /// AXI4+ATOP request type on the slave port.
-  /// Expected format can be defined using `AXI_TYPEDEF_REQ_T.
-  parameter type slv_req_t      = logic,
-  /// AXI4+ATOP response type on the slave port.
-  /// Expected format can be defined using `AXI_TYPEDEF_RESP_T.
-  parameter type slv_resp_t     = logic,
-  /// AXI4+ATOP request type on the master port.
-  /// Expected format can be defined using `AXI_TYPEDEF_REQ_T.
-  parameter type mst_req_t      = logic,
-  /// AXI4+ATOP response type on the master port.
-  /// Expected format can be defined using `AXI_TYPEDEF_RESP_T.
-  parameter type mst_resp_t     = logic,
-  /// Configuration RegBus interface request type
-  parameter type reg_req_t      = logic,
-  /// Configuration RegBus interface response type
-  parameter type reg_resp_t      = logic,
-  /// Full AXI4+ATOP Port address decoding rule
-  parameter type rule_full_t    = axi_pkg::xbar_rule_64_t,
-  /// Whether to print SRAM configs
-  parameter bit  PrintSramCfg   = 0,
-  /// Dependent parameter, do **not** overwrite!
-  /// Address type of the AXI4+ATOP ports.
-  /// The address fields of the rule type have to be the same.
-  parameter type axi_addr_t     = logic[AxiAddrWidth-1:0],
-  /// Dependent parameter, do **not** overwrite!
-  /// Data type of set associativity wide registers
-  parameter type way_ind_t      = logic[SetAssociativity-1:0]
+    /// DRAM memory Base
+    parameter int unsigned DRAMMemBase      = 0,
+    /// DRAM memory Length
+    parameter int unsigned DRAMMemLength    = 0,
+    /// Capability size in memory
+    parameter int unsigned CapSize          = 128,
+    /// Tag Cache base address in memory. Location of the Tag Cache
+    /// structure
+    parameter int unsigned TagCacheMemBase  = 0,
+    /// The set-associativity of the LLC.
+    ///
+    /// This parameter determines how many ways/sets will be instantiated.
+    ///
+    /// Restrictions:
+    /// * Minimum value: `32'd1`
+    /// * Maximum value: `32'd63`
+    /// The maximum value depends on the internal register width
+    parameter int unsigned SetAssociativity = 32'd0,
+    /// Number of cache lines per way.
+    ///
+    /// Restrictions:
+    /// * Minimum value: `32'd2`
+    /// * Has to be a power of two.
+    ///
+    /// Note on restrictions:
+    /// The reason is that in the address, at least one bit has to be mapped onto a cache-line index.
+    /// This is a limitation of the *system verilog* language, which requires at least one bit wide
+    /// fields inside of a struct. Further this value has to be a power of 2. This has to do with the
+    /// requirement that the address mapping from the address onto the cache-line index has to be
+    /// continuous.
+    parameter int unsigned NumLines         = 32'd0,
+    /// Number of blocks (words) in a cache line.
+    ///
+    /// The width of a block is the same as the data width of the AXI4+ATOP ports. Defined with
+    /// parameter `AxiCfg.DataWidthFull` in bits.
+    ///
+    /// Restrictions:
+    /// * Minimum value: 32'd2
+    /// * Has to be a power of two.
+    ///
+    /// Note on restrictions:
+    /// The same restriction as of parameter `NumLines` applies.
+    parameter int unsigned NumBlocks        = 32'd0,
+    /// AXI4+ATOP ID field width of the slave port.
+    /// The ID field width of the master port is this parameter + 1.
+    parameter int unsigned AxiIdWidth       = 32'd0,
+    /// AXI4+ATOP address field width of both the slave and master port.
+    parameter int unsigned AxiAddrWidth     = 32'd0,
+    /// AXI4+ATOP data field width of both the slave and the master port.
+    parameter int unsigned AxiDataWidth     = 32'd0,
+    /// AXI4+ATOP user field width of both the slave and the master port.
+    parameter int unsigned AxiUserWidth     = 32'd0,
+    /// AXI4+ATOP request type on the slave port.
+    /// Expected format can be defined using `AXI_TYPEDEF_REQ_T.
+    parameter type         slv_req_t        = logic,
+    /// AXI4+ATOP response type on the slave port.
+    /// Expected format can be defined using `AXI_TYPEDEF_RESP_T.
+    parameter type         slv_resp_t       = logic,
+    /// AXI4+ATOP request type on the master port.
+    /// Expected format can be defined using `AXI_TYPEDEF_REQ_T.
+    parameter type         mst_req_t        = logic,
+    /// AXI4+ATOP response type on the master port.
+    /// Expected format can be defined using `AXI_TYPEDEF_RESP_T.
+    parameter type         mst_resp_t       = logic,
+    /// Configuration RegBus interface request type
+    parameter type         reg_req_t        = logic,
+    /// Configuration RegBus interface response type
+    parameter type         reg_resp_t       = logic,
+    /// Full AXI4+ATOP Port address decoding rule
+    parameter type         rule_full_t      = axi_pkg::xbar_rule_64_t,
+    /// Whether to print SRAM configs
+    parameter bit          PrintSramCfg     = 0,
+    /// Dependent parameter, do **not** overwrite!
+    /// Address type of the AXI4+ATOP ports.
+    /// The address fields of the rule type have to be the same.
+    parameter type         axi_addr_t       = logic                   [    AxiAddrWidth-1:0],
+    /// Dependent parameter, do **not** overwrite!
+    /// Data type of set associativity wide registers
+    parameter type         way_ind_t        = logic                   [SetAssociativity-1:0]
 ) (
-  /// Rising-edge clock of all ports.
-  input logic clk_i,
-  /// Asynchronous reset, active low
-  input logic rst_ni,
-  /// Test mode activate, active high.
-  input logic test_i,
-  /// AXI4+ATOP slave port request, CPU side
-  input slv_req_t slv_req_i,
-  /// AXI4+ATOP slave port response, CPU side
-  output slv_resp_t slv_resp_o,
-  /// AXI4+ATOP master port request, memory side
-  output mst_req_t mst_req_o,
-  /// AXI4+ATOP master port response, memory side
-  input mst_resp_t mst_resp_i,
-  /// Configuration RegBus interface - request
-  input reg_req_t conf_req_i,
-  /// Configuration RegBus interface - response
-  output reg_resp_t conf_resp_o,
-  /// Start of address region mapped to cache
-  input axi_addr_t cached_start_addr_i,
-  /// End of address region mapped to cache
-  input axi_addr_t cached_end_addr_i
+    /// Rising-edge clock of all ports.
+    input logic clk_i,
+    /// Asynchronous reset, active low
+    input logic rst_ni,
+    /// Test mode activate, active high.
+    input logic test_i,
+    /// AXI4+ATOP slave port request, CPU side
+    input slv_req_t slv_req_i,
+    /// AXI4+ATOP slave port response, CPU side
+    output slv_resp_t slv_resp_o,
+    /// AXI4+ATOP master port request, memory side
+    output mst_req_t mst_req_o,
+    /// AXI4+ATOP master port response, memory side
+    input mst_resp_t mst_resp_i,
+    /// Configuration RegBus interface - request
+    input reg_req_t conf_req_i,
+    /// Configuration RegBus interface - response
+    output reg_resp_t conf_resp_o,
+    /// Start of address region mapped to cache
+    input axi_addr_t cached_start_addr_i,
+    /// End of address region mapped to cache
+    input axi_addr_t cached_end_addr_i
 );
 
   // Define 64-bit register types for the AXI_LLC toplevel
@@ -241,57 +241,57 @@ module axi_tagctrl_reg_wrap #(
 
   // Generated 32-bit RegBus register file
   axi_llc_reg_top #(
-    .reg_req_t ( reg_req_t  ),
-    .reg_rsp_t ( reg_resp_t )
+      .reg_req_t(reg_req_t),
+      .reg_rsp_t(reg_resp_t)
   ) i_llc_config_regfile (
-    .clk_i,
-    .rst_ni,
-    .reg_req_i  ( conf_req_i    ),
-    .reg_rsp_o  ( conf_resp_o   ),
-    
-    // To HW
-    .reg2hw     ( config_reg2hw ), // Write
-    .hw2reg     ( config_hw2reg ), // Read
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(conf_req_i),
+      .reg_rsp_o(conf_resp_o),
 
-    // Config
-    .devmode_i  ( 1'b1          )  // If 1, explicit error return for unmapped register access
+      // To HW
+      .reg2hw(config_reg2hw),  // Write
+      .hw2reg(config_hw2reg),  // Read
+
+      // Config
+      .devmode_i(1'b1)  // If 1, explicit error return for unmapped register access
   );
 
   // Registerfile agnostic axi_llc toplevel - configured for 64-bit internal registers
   axi_tagctrl_top #(
-    .CapSize         (CapSize),
-    .TagCacheMemBase (TagCacheMemBase),
-    .DRAMMemBase (DRAMMemBase),
-    .SetAssociativity ( SetAssociativity      ),
-    .NumLines         ( NumLines              ),
-    .NumBlocks        ( NumBlocks             ),
-    .AxiIdWidth       ( AxiIdWidth            ),
-    .AxiAddrWidth     ( AxiAddrWidth          ),
-    .AxiDataWidth     ( AxiDataWidth          ),
-    .AxiUserWidth     ( AxiUserWidth          ),
-    .RegWidth         ( 32'd64                ),
-    .conf_regs_d_t    ( axi_llc_cfg_regs_d_t  ),
-    .conf_regs_q_t    ( axi_llc_cfg_regs_q_t  ),
-    .slv_req_t        ( slv_req_t             ),
-    .slv_resp_t       ( slv_resp_t            ),
-    .mst_req_t        ( mst_req_t             ),
-    .mst_resp_t       ( mst_resp_t            ),
-    .rule_full_t      ( rule_full_t           ),
-    .PrintSramCfg     ( PrintSramCfg          )
+      .CapSize         (CapSize),
+      .TagCacheMemBase (TagCacheMemBase),
+      .DRAMMemBase     (DRAMMemBase),
+      .SetAssociativity(SetAssociativity),
+      .NumLines        (NumLines),
+      .NumBlocks       (NumBlocks),
+      .AxiIdWidth      (AxiIdWidth),
+      .AxiAddrWidth    (AxiAddrWidth),
+      .AxiDataWidth    (AxiDataWidth),
+      .AxiUserWidth    (AxiUserWidth),
+      .RegWidth        (32'd64),
+      .conf_regs_d_t   (axi_llc_cfg_regs_d_t),
+      .conf_regs_q_t   (axi_llc_cfg_regs_q_t),
+      .slv_req_t       (slv_req_t),
+      .slv_resp_t      (slv_resp_t),
+      .mst_req_t       (mst_req_t),
+      .mst_resp_t      (mst_resp_t),
+      .rule_full_t     (rule_full_t),
+      .PrintSramCfg    (PrintSramCfg)
   ) i_axi_tagctrl_top_raw (
-    .clk_i,
-    .rst_ni,
-    .test_i,
-    .slv_req_i,
-    .slv_resp_o,
-    .mst_req_o,
-    .mst_resp_i,
+      .clk_i,
+      .rst_ni,
+      .test_i,
+      .slv_req_i,
+      .slv_resp_o,
+      .mst_req_o,
+      .mst_resp_i,
 
-    .conf_regs_i      ( config_regs_q ),
-    .conf_regs_o      ( config_regs_d ),
+      .conf_regs_i(config_regs_q),
+      .conf_regs_o(config_regs_d),
 
-    .cached_start_addr_i,
-    .cached_end_addr_i
+      .cached_start_addr_i,
+      .cached_end_addr_i
   );
 
 endmodule

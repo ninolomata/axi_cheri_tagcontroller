@@ -59,7 +59,7 @@ module tag_ctrl_testharness #(
     input  logic                                cpu_r_ready
 );
   /*verilator public_on*/
-  localparam int unsigned CapSize = 128; 
+  localparam int unsigned CapSize = 128;
   localparam int unsigned NUM_WORDS = 2 ** 25;  // memory size
   localparam int unsigned DRAMMemBase = {64'h80000000};
   localparam int unsigned DRAMMemLength = {64'h40000000};
@@ -195,14 +195,14 @@ module tag_ctrl_testharness #(
   logic [  AxiDataWidth-1:0] dram_rdata;
   logic [  AxiUserWidth-1:0] dram_wuser;
   logic [  AxiUserWidth-1:0] dram_ruser;
-  logic dram_rvalid;
+  logic                      dram_rvalid;
 
   ////////////////////////////
   // AXI Tag Controller DUT //
   ////////////////////////////
   axi_tagctrl_reg_wrap #(
-      .DRAMMemBase    (DRAMMemBase),
-     .CapSize         (CapSize),
+      .DRAMMemBase     (DRAMMemBase),
+      .CapSize         (CapSize),
       .TagCacheMemBase (TagCacheMemBase),
       .SetAssociativity(SetAssociativity),
       .NumLines        (NumLines),
@@ -233,7 +233,7 @@ module tag_ctrl_testharness #(
       .cached_end_addr_i  (CachedRegionLength)
   );
 
-/*   AXI_BUS #(
+  /*   AXI_BUS #(
       .AXI_ADDR_WIDTH(AxiAddrWidth),
       .AXI_DATA_WIDTH(AxiDataWidth),
       .AXI_ID_WIDTH  (AxiIdWidth + 1),
@@ -257,7 +257,7 @@ module tag_ctrl_testharness #(
       .mst(axi_dram_delayed)
   ); */
 
-   axi2mem #(
+  axi2mem #(
       .AXI_ID_WIDTH  (AxiIdWidth + 1),
       .AXI_ADDR_WIDTH(AxiAddrWidth),
       .AXI_DATA_WIDTH(AxiDataWidth),

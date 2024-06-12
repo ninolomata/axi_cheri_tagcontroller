@@ -15,6 +15,8 @@ TB_PATH    := $(ROOT_PATH)/test
 bender_tool    ?= bender
 # verilator version
 verilator      ?= /usr/local/bin/verilator
+# verible tool
+verible        ?= verible-verilog-format
 # source files
 src          := $(shell $(bender_tool) script verilator -t synthesis -t synth_test -t tb)
 src_cpp      := $(wildcard $(ROOT_PATH)/test/src/*.cpp)
@@ -109,6 +111,12 @@ verilate_lint_command := $(verilator)                                     \
                     --Mdir $(VER_BUILD_DIR) -O3                           \
                     --exe ${TB_PATH}/src/$(MODULE)_tb.cpp
 
+# verible formatter
+verible_src := $(addprefix $(ROOT_PATH), $(shell git ls-tree -r HEAD --name-only | grep '\.sv$$'))
+verible_format_command := $(verible)       \
+                           --inplace       \
+					       $(verible_src)
+
 .PHONY:waves
 waves: $(VCD_DUMP)
 	@echo
@@ -136,6 +144,12 @@ runtests: $(VER_BUILD_DIR)V$(MODULE)_testharness.mk
 .PHONY:lint
 verilator-lint:
 	$(verilate_lint_command)
+
+.PHONY:format
+verible-format:
+	@echo "<----Formatting source code---->"
+	$(verible_format_command)
+	@echo "<----Finish formatting source code---->"
 
 
 .PHONY:gtest

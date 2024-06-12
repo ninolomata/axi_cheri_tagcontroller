@@ -10,44 +10,44 @@
 /// [TODO] Description here
 
 module axi_tagctrl_r #(
-  /// Tag Controller configuration struct.This is passed down from
-  /// [`axi_tagctrl_top`](module.axi_tagctrl_top).
-  parameter axi_tagctrl_pkg::tagctrl_cfg_t Cfg = axi_tagctrl_pkg::tagctrl_cfg_t'{default: '0},
-  /// Tag Controller descriptor type definition.
-  parameter type tagctrl_desc_t = logic,
-  /// Tag Cache R payload type definition.
-  parameter type tagc_inp_t  = logic,
-  /// AXI slave port R channel struct definition.
-  parameter type r_chan_t  = logic
+    /// Tag Controller configuration struct.This is passed down from
+    /// [`axi_tagctrl_top`](module.axi_tagctrl_top).
+    parameter axi_tagctrl_pkg::tagctrl_cfg_t Cfg = axi_tagctrl_pkg::tagctrl_cfg_t'{default: '0},
+    /// Tag Controller descriptor type definition.
+    parameter type tagctrl_desc_t = logic,
+    /// Tag Cache R payload type definition.
+    parameter type tagc_inp_t = logic,
+    /// AXI slave port R channel struct definition.
+    parameter type r_chan_t = logic
 ) (
-  /// Clock, positive edge triggered.
-  input logic clk_i,
-  /// Asynchronous reset, active low.
-  input logic rst_ni,
-  /// Input descriptor payload.
-  input tagctrl_desc_t tagctrl_desc_i,
-  /// Input descriptor is valid.
-  input logic tagctrl_desc_valid_i,
-  /// Unit is ready to accept a new descriptor.
-  output logic tagctrl_desc_ready_o,
-  /// AXI R master channel payload.
-  input r_chan_t r_chan_mst_i,
-  /// AXI R channel is valid.
-  input logic r_chan_valid_i,
-  /// AXI R channel is ready.
-  output logic r_chan_ready_o,
-  /// Tag Cache R payload.
-  input tagc_inp_t tagc_inp_r_i,
-  /// Tag Cache R payload is valid.
-  input logic tagc_inp_r_valid_i,
-  /// Tag Cache R channel is ready .
-  output logic tagc_inp_r_ready_o,
-  /// Slave port R channel beat data.
-  output r_chan_t r_chan_slv_o,
-  /// R beat is valid.
-  output logic r_chan_slv_valid_o,
-  /// R beat is ready.
-  input logic r_chan_slv_ready_i
+    /// Clock, positive edge triggered.
+    input logic clk_i,
+    /// Asynchronous reset, active low.
+    input logic rst_ni,
+    /// Input descriptor payload.
+    input tagctrl_desc_t tagctrl_desc_i,
+    /// Input descriptor is valid.
+    input logic tagctrl_desc_valid_i,
+    /// Unit is ready to accept a new descriptor.
+    output logic tagctrl_desc_ready_o,
+    /// AXI R master channel payload.
+    input r_chan_t r_chan_mst_i,
+    /// AXI R channel is valid.
+    input logic r_chan_valid_i,
+    /// AXI R channel is ready.
+    output logic r_chan_ready_o,
+    /// Tag Cache R payload.
+    input tagc_inp_t tagc_inp_r_i,
+    /// Tag Cache R payload is valid.
+    input logic tagc_inp_r_valid_i,
+    /// Tag Cache R channel is ready .
+    output logic tagc_inp_r_ready_o,
+    /// Slave port R channel beat data.
+    output r_chan_t r_chan_slv_o,
+    /// R beat is valid.
+    output logic r_chan_slv_valid_o,
+    /// R beat is ready.
+    input logic r_chan_slv_ready_i
 );
   // Registers
   tagctrl_desc_t tagctrl_desc_d, tagctrl_desc_q;
@@ -55,18 +55,19 @@ module axi_tagctrl_r #(
   enum logic [1:0] {
     IDLE,
     SEND_R_CHANNEL
-  } state_d, state_q;
+  }
+      state_d, state_q;
   // AXI tag cache channel signals
   tagc_inp_t tagc_inp_r_d, tagc_inp_r_q;
   logic tagc_inp_r_valid_d, tagc_inp_r_valid_q;
   logic load_tags, load_tags_valid;
   // MEM FIFO control signals
-  logic         mem_fifo_full;     // the FIFO is full
-  logic         mem_fifo_empty;     // the FIFO is full
-  logic         mem_fifo_push;     // push data into the FIFO
-  logic         mem_fifo_pop;      // pop data from FIFO if it gets transferred
-  r_chan_t    mem_fifo_data;     // gets assigned to the w channel
-  r_chan_t    mem_fifo_indata;
+  logic mem_fifo_full;  // the FIFO is full
+  logic mem_fifo_empty;  // the FIFO is full
+  logic mem_fifo_push;  // push data into the FIFO
+  logic mem_fifo_pop;  // pop data from FIFO if it gets transferred
+  r_chan_t mem_fifo_data;  // gets assigned to the w channel
+  r_chan_t mem_fifo_indata;
   // auxiliary signals
   // Tag index bit (indicates if we are reading from a valid capability or not)
   logic [$clog2(Cfg.AxiDataWidth)-1:0] tag_bit_ind;
@@ -104,8 +105,12 @@ module axi_tagctrl_r #(
           r_chan_slv_valid_o = 1'b1;
           mem_fifo_pop = r_chan_slv_ready_i;
           // update the address
-          tagctrl_desc_d.a_x_addr = axi_pkg::aligned_addr(tagctrl_desc_q.a_x_addr +
-                              axi_pkg::num_bytes(tagctrl_desc_q.a_x_size), tagctrl_desc_q.a_x_size);
+          tagctrl_desc_d.a_x_addr = axi_pkg::aligned_addr(
+            tagctrl_desc_q.a_x_addr + axi_pkg::num_bytes(
+              tagctrl_desc_q.a_x_size
+            ),
+            tagctrl_desc_q.a_x_size
+          );
           load_desc = r_chan_slv_ready_i;
           r_chan_slv_o = mem_fifo_data;
           // set id filled with the one from the descriptor
@@ -113,7 +118,9 @@ module axi_tagctrl_r #(
           // set user field with the tag bit
           r_chan_slv_o.user = (tagc_inp_r_q.data >> tag_bit_ind) & 1;
           // load more tags if needed
-          if ((tag_bit_ind == (Cfg.AxiDataWidth - 1) && tagctrl_desc_d.a_x_addr[0+:$clog2(Cfg.CapSize/8)] == 0) && !mem_fifo_data.last && r_chan_slv_ready_i) begin
+          if ((tag_bit_ind == (Cfg.AxiDataWidth - 1) && tagctrl_desc_d.a_x_addr[0+:$clog2(
+                  Cfg.CapSize/8
+              )] == 0) && !mem_fifo_data.last && r_chan_slv_ready_i) begin
             get_tags();
           end
           if (mem_fifo_data.last && r_chan_slv_ready_i) begin
@@ -122,10 +129,10 @@ module axi_tagctrl_r #(
           end
         end
         if (!tagc_inp_r_valid_q) begin
-           get_tags();
-           mem_fifo_pop = 1'b0;
-           r_chan_slv_valid_o = 1'b0;
-           load_desc = 1'b0;
+          get_tags();
+          mem_fifo_pop = 1'b0;
+          r_chan_slv_valid_o = 1'b0;
+          load_desc = 1'b0;
         end
       end
       // Go to Idle
@@ -138,10 +145,10 @@ module axi_tagctrl_r #(
 
   always_comb begin : r_chan_mst_fifo_ctrl
     mem_fifo_indata = '0;
-    mem_fifo_push = 1'b0;
+    mem_fifo_push   = 1'b0;
     if (r_chan_valid_i && r_chan_ready_o) begin
-          mem_fifo_push = 1'b1;
-          mem_fifo_indata = r_chan_mst_i;
+      mem_fifo_push   = 1'b1;
+      mem_fifo_indata = r_chan_mst_i;
     end
   end
   // this function loads a new descriptor from the `axi_tagctrl_ax.sv` unit
@@ -168,28 +175,28 @@ module axi_tagctrl_r #(
       tagc_inp_r_valid_d = 1'b1;
       load_tags_valid = 1'b1;
     end
-  endfunction :get_tags
+  endfunction : get_tags
 
   // FIFO holds R beats from mem
   fifo_v3 #(
-    .FALL_THROUGH ( 1'b0                  ),  // FIFO is in fall-through mode
-    .DEPTH        ( Cfg.TagRFifoDepth     ),  // can store up to 8 transactions
-    .dtype        ( r_chan_t              )
+      .FALL_THROUGH(1'b0),               // FIFO is in fall-through mode
+      .DEPTH       (Cfg.TagRFifoDepth),  // can store up to 8 transactions
+      .dtype       (r_chan_t)
   ) i_r_data_fifo (
-    .clk_i        ( clk_i                 ),  // Clock
-    .rst_ni       ( rst_ni                ),  // Asynchronous reset active low
-    .flush_i      ( '0                    ),  // flush the queue
-    .testmode_i   ( '0                    ),  // test_mode to bypass clock gating
-    // status flags
-    .full_o       ( mem_fifo_full         ),  // queue is full
-    .empty_o      ( mem_fifo_empty        ),  // queue is empty
-    .usage_o      ( /* not used */        ),  // fill pointer
-    // as long as the queue is not full we can push new data
-    .data_i       ( mem_fifo_indata       ),  // data to push into the queue
-    .push_i       ( mem_fifo_push         ),  // data is valid and can be pushed to the queue
-    // as long as the queue is not empty we can pop new elements
-    .data_o       ( mem_fifo_data         ),  // output data
-    .pop_i        ( mem_fifo_pop          )   // pop head from queue
+      .clk_i     (clk_i),             // Clock
+      .rst_ni    (rst_ni),            // Asynchronous reset active low
+      .flush_i   ('0),                // flush the queue
+      .testmode_i('0),                // test_mode to bypass clock gating
+      // status flags
+      .full_o    (mem_fifo_full),     // queue is full
+      .empty_o   (mem_fifo_empty),    // queue is empty
+      .usage_o   (  /* not used */),  // fill pointer
+      // as long as the queue is not full we can push new data
+      .data_i    (mem_fifo_indata),   // data to push into the queue
+      .push_i    (mem_fifo_push),     // data is valid and can be pushed to the queue
+      // as long as the queue is not empty we can pop new elements
+      .data_o    (mem_fifo_data),     // output data
+      .pop_i     (mem_fifo_pop)       // pop head from queue
   );
 
   // Registers Flip Flops
